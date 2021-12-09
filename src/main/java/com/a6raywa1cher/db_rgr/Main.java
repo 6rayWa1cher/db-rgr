@@ -9,8 +9,8 @@ import com.a6raywa1cher.db_rgr.model.repository.DepartmentRepository;
 import java.sql.SQLException;
 
 public class Main {
-	private static void createTables(DatabaseConnector connector) throws SQLException {
-		connector.withTransaction(() -> connector.execute("""
+	public static void createTables(DatabaseConnector connector) throws SQLException {
+		connector.execute("""
 			CREATE TABLE IF NOT EXISTS public.department (
 				department_title varchar(255) PRIMARY KEY,
 				tel_number varchar(50),
@@ -57,23 +57,37 @@ public class Main {
 				id int CHECK (id > 0),
 				machinery_title varchar(255) REFERENCES public.machinery_type,
 				holder_name varchar(255),
-				holder_department_title varchar(255) CHECK (holder_department_title = department_title),
 				date_of_purchase date CHECK ( date_of_purchase <= now()::date ),
 				PRIMARY KEY (department_title, machinery_title, id),
-				FOREIGN KEY (holder_name, holder_department_title) REFERENCES public.employee (full_name, department_title)
+				FOREIGN KEY (holder_name, department_title) REFERENCES public.employee (full_name, department_title)
 			);
-			"""));
+			""");
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void dropDatabase(DatabaseConnector connector) throws SQLException {
+		connector.executeUpdate("""
+			drop table if exists machinery_requirement cascade;
+			drop table if exists employee_requirement cascade;
+			drop table if exists machinery cascade;
+			drop table if exists machinery_type cascade;
+			drop table if exists employee cascade;
+			drop table if exists department cascade;
+			drop table if exists employee_type cascade;
+			""");
+	}
+
+	public static DatabaseConnector initConnector() throws SQLException {
 		ConfigLoader configLoader = new ConfigLoader(ResourcesUtils.getPathOfResource("config.yml"));
 		Config config = configLoader.getConfig();
 		System.out.println(config.toString());
 		Config.Db db = config.getDb();
-		try (DatabaseConnector connector = new DatabaseConnector(
-			db.getJdbc(), db.getUser(), db.getPassword())) {
-			String databaseName = connector.executeSelectSingle("SELECT current_database()", String.class);
-			System.out.println("Connected to database " + databaseName);
+		return new DatabaseConnector(db.getJdbc(), db.getUser(), db.getPassword());
+	}
+
+	public static void main(String[] args) throws Exception {
+		try (DatabaseConnector connector = initConnector()) {
+			CommonSqlQueries commonSqlQueries = new CommonSqlQueries(connector);
+			System.out.println("Connected to database " + commonSqlQueries.getDatabaseName());
 			createTables(connector);
 
 			DepartmentRepository departmentRepository = new DepartmentRepository(connector);

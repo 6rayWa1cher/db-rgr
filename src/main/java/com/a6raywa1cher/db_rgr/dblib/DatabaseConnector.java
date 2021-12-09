@@ -5,28 +5,26 @@ import org.intellij.lang.annotations.Language;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class DatabaseConnector implements AutoCloseable {
 	private final Connection con;
 	private final ClassAnalyzer classAnalyzer = ClassAnalyzer.getInstance();
-	private final Map<String, PreparedStatement> cachedPS = new HashMap<>();
 
 	@SneakyThrows(ClassNotFoundException.class)
 	public DatabaseConnector(String jdbcUrl, String user, String password) throws SQLException {
 		instantiate(Class.forName("org.postgresql.Driver"));
 		this.con = DriverManager.getConnection(jdbcUrl, user, password);
+		con.setAutoCommit(true);
 	}
 
 	public PreparedStatement openPS(@Language("SQL") String sql, Object... params) throws SQLException {
-		if (!cachedPS.containsKey(sql)) {
-			PreparedStatement preparedStatement = con.prepareStatement(sql);
-			cachedPS.put(sql, preparedStatement);
-		}
-		PreparedStatement ps = cachedPS.get(sql);
+		PreparedStatement ps = con.prepareStatement(sql);
 		for (int i = 0; i < params.length; i++) {
 			Object param = params[i];
-			ps.setObject(i, param);
+			ps.setObject(i + 1, param);
 		}
 		return ps;
 	}
@@ -55,13 +53,13 @@ public class DatabaseConnector implements AutoCloseable {
 
 	private <T> List<T> parseResultEntity(Class<T> resultType, ResultSetMetaData metaData, List<Object[]> objects) throws SQLException {
 		List<T> out = new ArrayList<>(objects.size());
-		Map<String, FieldData> fieldDataOfClass = classAnalyzer.getFieldDataOfClass(resultType);
+		ClassData fieldDataOfClass = classAnalyzer.getClassData(resultType);
 		try {
 			for (Object[] obj : objects) {
 				T t = instantiate(resultType);
 				for (int i = 0; i < obj.length; i++) {
 					String fieldName = metaData.getColumnName(i + 1);
-					FieldData fieldData = fieldDataOfClass.get(fieldName);
+					FieldData fieldData = fieldDataOfClass.getByName(fieldName);
 					Objects.requireNonNull(fieldData);
 					fieldData.setter().invoke(t, fieldData.type().cast(obj[i]));
 				}

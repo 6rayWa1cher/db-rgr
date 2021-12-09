@@ -3,6 +3,7 @@ package com.a6raywa1cher.db_rgr.dblib;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,7 +13,7 @@ import static com.a6raywa1cher.db_rgr.dblib.StringUtils.capitalizeFirstLetter;
 public class ClassAnalyzer {
 	private final static ClassAnalyzer classAnalyzer = new ClassAnalyzer();
 
-	private final Map<Class<?>, Map<String, FieldData>> cachedFieldData = new HashMap<>();
+	private final Map<Class<?>, ClassData> cachedFieldData = new HashMap<>();
 
 	private ClassAnalyzer() {
 
@@ -36,8 +37,8 @@ public class ClassAnalyzer {
 		return "set" + capitalizeFirstLetter(fieldName);
 	}
 
-	private Map<String, FieldData> $getFieldDataOfClass(Class<?> clazz) {
-		return Stream.of(clazz.getDeclaredFields())
+	private ClassData $getClassData(Class<?> clazz) {
+		List<FieldData> fieldData = Stream.of(clazz.getDeclaredFields())
 			.map(f -> {
 				try {
 					Column annotation = f.getAnnotation(Column.class);
@@ -59,11 +60,13 @@ public class ClassAnalyzer {
 					throw new RuntimeException(e);
 				}
 			})
-			.collect(Collectors.toMap(FieldData::fieldName, f -> f));
+			.collect(Collectors.toList());
+		String tableName = clazz.getAnnotation(Entity.class).value();
+		return new ClassData(fieldData, tableName);
 	}
 
-	public Map<String, FieldData> getFieldDataOfClass(Class<?> clazz) {
-		cachedFieldData.computeIfAbsent(clazz, this::$getFieldDataOfClass);
+	public ClassData getClassData(Class<?> clazz) {
+		cachedFieldData.computeIfAbsent(clazz, this::$getClassData);
 		return cachedFieldData.get(clazz);
 	}
 }
