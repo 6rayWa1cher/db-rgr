@@ -9,21 +9,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class CrudRepository<T> {
-	private final Class<T> entityClass;
+	protected final Class<T> entityClass;
 
-	private final DatabaseConnector connector;
+	protected final DatabaseConnector connector;
 
-	private ClassData classData;
+	protected ClassData classData;
 
-	private String fields;
+	protected String fields;
 
-	private String defaultParametersPlaceholder;
+	protected String defaultParametersPlaceholder;
 
-	private String primaryFields;
+	protected String primaryFields;
 
-	private String primaryParametersPlaceholder;
+	protected String primaryParametersPlaceholder;
 
-	private String tableName;
+	protected String tableName;
 
 	public CrudRepository(Class<T> entityClass, DatabaseConnector connector) {
 		this.entityClass = entityClass;
@@ -40,14 +40,6 @@ public abstract class CrudRepository<T> {
 		this.primaryParametersPlaceholder = getParametersPlaceholder(classData.getPrimaryKey().size());
 	}
 
-	@SneakyThrows
-	public List<T> getAll() {
-		return connector.executeSelect(
-			unsafeInjectParameters("SELECT * FROM public.%s", classData.getTableName()),
-			entityClass
-		);
-	}
-
 	private String toFieldList(List<FieldData> fieldData) {
 		return fieldData.stream()
 			.map(FieldData::fieldName)
@@ -56,6 +48,19 @@ public abstract class CrudRepository<T> {
 
 	private Object[] objectToParameters(T t) {
 		return classData.getFieldDataList()
+			.stream()
+			.map(fd -> {
+				try {
+					return fd.getter().invoke(t);
+				} catch (IllegalAccessException | InvocationTargetException e) {
+					throw new RuntimeException(e);
+				}
+			})
+			.toArray();
+	}
+
+	private Object[] objectToPrimaryParameters(T t) {
+		return classData.getPrimaryKey()
 			.stream()
 			.map(fd -> {
 				try {
@@ -78,6 +83,14 @@ public abstract class CrudRepository<T> {
 	}
 
 	@SneakyThrows
+	public List<T> getAll() {
+		return connector.executeSelect(
+			unsafeInjectParameters("SELECT * FROM public.%s", classData.getTableName()),
+			entityClass
+		);
+	}
+
+	@SneakyThrows
 	public T getById(Object... id) {
 		return connector.executeSelectSingle(
 			unsafeInjectParameters("SELECT * from public.%s WHERE (%s) = (%s)",
@@ -96,6 +109,35 @@ public abstract class CrudRepository<T> {
 				fields,
 				defaultParametersPlaceholder
 			), objectToParameters(t)
+		);
+	}
+
+	@SneakyThrows
+	public long count() {
+		return connector.executeSelectSingle(
+			unsafeInjectParameters("SELECT count(*) from public.%s", tableName), Long.class
+		);
+	}
+
+	@SneakyThrows
+	public void update(T t) {
+		connector.executeUpdate(
+			unsafeInjectParameters("UPDATE public.%s SET (%s) = (%s)",
+				tableName,
+				fields,
+				defaultParametersPlaceholder
+			), objectToParameters(t)
+		);
+	}
+
+	@SneakyThrows
+	public void delete(T t) {
+		connector.executeUpdate(
+			unsafeInjectParameters("DELETE FROM public.%s WHERE (%s) = (%s)",
+				tableName,
+				primaryFields,
+				primaryParametersPlaceholder
+			), objectToPrimaryParameters(t)
 		);
 	}
 }
