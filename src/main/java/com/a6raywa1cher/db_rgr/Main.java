@@ -79,5 +79,5 @@ public class Main {
 			DepartmentRepository departmentRepository = new DepartmentRepository(connector);
 			departmentRepository.getAll().forEach(System.out::println);
 		}
-    }
+	}
 }

@@ -4,14 +4,14 @@ import lombok.Data;
 
 @Data
 public class Config {
-    private Db db;
+	private Db db;
 
-    @Data
-    public static class Db {
-        private String jdbc;
+	@Data
+	public static class Db {
+		private String jdbc;
 
-        private String user;
+		private String user;
 
-        private String password;
-    }
+		private String password;
+	}
 }
