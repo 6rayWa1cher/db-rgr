@@ -1,23 +1,24 @@
 package com.a6raywa1cher.db_rgr.model;
 
-
 import com.a6raywa1cher.db_rgr.dblib.Column;
 import com.a6raywa1cher.db_rgr.dblib.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
+
 @Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Department {
-	@Column(value = "department_title", pk = true)
-	private String title;
+public class EmployeeType {
+	@Column(pk = true)
+	private String employeeRank;
 
-	@Column(value = "tel_number")
-	private String telephoneNumber;
+	@Column(pk = true)
+	private String position;
 
 	@Column
-	private String address;
+	private Duration retirementAfter;
 }

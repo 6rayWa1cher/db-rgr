@@ -8,7 +8,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.a6raywa1cher.db_rgr.dblib.StringUtils.capitalizeFirstLetter;
+import static com.a6raywa1cher.db_rgr.lib.StringUtils.camelCaseToUnderscore;
+import static com.a6raywa1cher.db_rgr.lib.StringUtils.capitalizeFirstLetter;
 
 public class ClassAnalyzer {
 	private final static ClassAnalyzer classAnalyzer = new ClassAnalyzer();
@@ -47,7 +48,9 @@ public class ClassAnalyzer {
 					Method getter = clazz.getMethod(getGetterName(f));
 					Method setter = clazz.getMethod(getSetterName(f), fieldType);
 					boolean pk = annotation.pk();
-					String dbFieldName = annotation.value();
+					String dbFieldName = annotation.value().equals("") ?
+						camelCaseToUnderscore(f.getName()) :
+						annotation.value();
 					return new FieldData(
 						dbFieldName,
 						fieldType,
@@ -62,7 +65,10 @@ public class ClassAnalyzer {
 			})
 			.collect(Collectors.toList());
 		String tableName = clazz.getAnnotation(Entity.class).value();
-		return new ClassData(fieldData, tableName);
+		return new ClassData(
+			fieldData,
+			tableName.equals("") ? camelCaseToUnderscore(clazz.getSimpleName()) : tableName
+		);
 	}
 
 	public ClassData getClassData(Class<?> clazz) {

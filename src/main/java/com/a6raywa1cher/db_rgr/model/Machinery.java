@@ -1,23 +1,30 @@
 package com.a6raywa1cher.db_rgr.model;
 
-
 import com.a6raywa1cher.db_rgr.dblib.Column;
 import com.a6raywa1cher.db_rgr.dblib.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Department {
-	@Column(value = "department_title", pk = true)
-	private String title;
+public class Machinery {
+	@Column(pk = true)
+	private String departmentTitle;
 
-	@Column(value = "tel_number")
-	private String telephoneNumber;
+	@Column(pk = true)
+	private Integer id;
+
+	@Column(pk = true)
+	private String machineryTitle;
 
 	@Column
-	private String address;
+	private String holderName;
+
+	@Column
+	private LocalDate dateOfPurchase;
 }

@@ -1,6 +1,5 @@
 package com.a6raywa1cher.db_rgr.model;
 
-
 import com.a6raywa1cher.db_rgr.dblib.Column;
 import com.a6raywa1cher.db_rgr.dblib.Entity;
 import lombok.AllArgsConstructor;
@@ -11,13 +10,16 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Department {
-	@Column(value = "department_title", pk = true)
-	private String title;
+public class EmployeeRequirement {
+	@Column(pk = true)
+	private String departmentTitle;
 
-	@Column(value = "tel_number")
-	private String telephoneNumber;
+	@Column(pk = true)
+	private String employeeRank;
+
+	@Column(pk = true)
+	private String position;
 
 	@Column
-	private String address;
+	private Integer count;
 }
