@@ -9,7 +9,7 @@ import java.util.Objects;
 public final class ResourcesUtils {
 	@SneakyThrows
 	public static Path getPathOfResource(String resource) {
-		URL url = Thread.currentThread().getContextClassLoader().getResource("config.yml");
+		URL url = Thread.currentThread().getContextClassLoader().getResource(resource);
 		Objects.requireNonNull(url);
 		return Path.of(url.toURI());
 	}
