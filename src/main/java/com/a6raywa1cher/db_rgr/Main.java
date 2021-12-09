@@ -88,7 +88,6 @@ public class Main {
 	public static DatabaseConnector initConnector() throws SQLException {
 		ConfigLoader configLoader = new ConfigLoader(ResourcesUtils.getPathOfResource("config.yml"));
 		Config config = configLoader.getConfig();
-		System.out.println(config.toString());
 		Config.Db db = config.getDb();
 		return new DatabaseConnector(db.getJdbc(), db.getUser(), db.getPassword());
 	}
