@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Duration;
 
 @Data
 @Entity
@@ -20,5 +19,5 @@ public class EmployeeType {
 	private String position;
 
 	@Column
-	private Duration retirementAfter;
+	private Integer retirementAfterYears;
 }

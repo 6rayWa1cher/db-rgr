@@ -19,12 +19,12 @@ public class Main {
 			CREATE TABLE IF NOT EXISTS public.machinery_type (
 				machinery_title varchar(255) PRIMARY KEY,
 				type varchar(255),
-				life_time interval CHECK ( life_time > INTERVAL '0' )
+				life_time_years int CHECK ( life_time_years > 0 )
 			);
 			CREATE TABLE IF NOT EXISTS public.employee_type (
 				employee_rank varchar(255) NOT NULL,
 				position varchar(255) NOT NULL,
-				retirement_after interval CHECK ( retirement_after > INTERVAL '0' ),
+				retirement_after_years int CHECK ( retirement_after_years > 0 ),
 				PRIMARY KEY (employee_rank, position)
 			);
 			CREATE TABLE IF NOT EXISTS public.employee (

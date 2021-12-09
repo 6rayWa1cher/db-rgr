@@ -8,7 +8,12 @@ public final class StringUtils {
 		return s.substring(0, 1).toUpperCase(Locale.ROOT) + s.substring(1);
 	}
 
-	public static String camelCaseToUnderscore(String s) {
+	public static String lowerFirstLetter(String s) {
+		return s.substring(0, 1).toLowerCase(Locale.ROOT) + s.substring(1);
+	}
+
+	public static String camelCaseToUnderscore(String str) {
+		String s = lowerFirstLetter(str);
 		int[] capitals = IntStream.range(0, s.length())
 			.filter(i -> Character.isUpperCase(s.charAt(i)))
 			.toArray();

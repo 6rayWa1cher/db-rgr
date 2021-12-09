@@ -6,8 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Duration;
-
 @Data
 @Entity
 @NoArgsConstructor
@@ -20,5 +18,5 @@ public class MachineryType {
 	private String type;
 
 	@Column
-	private Duration lifeTime;
+	private Integer lifeTimeYears;
 }

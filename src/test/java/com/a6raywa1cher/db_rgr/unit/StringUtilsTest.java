@@ -17,5 +17,6 @@ public class StringUtilsTest {
 	void camelCaseToUnderscore() {
 		assertEquals("meow", StringUtils.camelCaseToUnderscore("meow"));
 		assertEquals("cat_says_meow", StringUtils.camelCaseToUnderscore("catSaysMeow"));
+		assertEquals("meow", StringUtils.camelCaseToUnderscore("Meow"));
 	}
 }
