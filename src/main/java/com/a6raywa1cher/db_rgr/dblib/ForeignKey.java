@@ -1,4 +1,4 @@
-package com.a6raywa1cher.db_rgr.lib;
+package com.a6raywa1cher.db_rgr.dblib;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Column {
-    String value();
+public @interface ForeignKey {
+    Class<?> targetClass();
 
-    boolean pk() default false;
+    String targetField();
 }

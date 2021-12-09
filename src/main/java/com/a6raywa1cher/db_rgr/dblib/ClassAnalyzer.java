@@ -1,14 +1,27 @@
-package com.a6raywa1cher.db_rgr.lib;
+package com.a6raywa1cher.db_rgr.dblib;
 
 import java.lang.reflect.Field;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.a6raywa1cher.db_rgr.lib.StringUtils.capitalizeFirstLetter;
+import static com.a6raywa1cher.db_rgr.dblib.StringUtils.capitalizeFirstLetter;
 
-public final class ReflectionUtils {
-    private static String getGetterName(Field field) {
+public class ClassAnalyzer {
+    private final static ClassAnalyzer classAnalyzer = new ClassAnalyzer();
+
+    private final Map<Class<?>, Map<String, FieldData>> cachedFieldData = new HashMap<>();
+
+    private ClassAnalyzer() {
+
+    }
+
+    public static ClassAnalyzer getInstance() {
+        return classAnalyzer;
+    }
+
+    private String getGetterName(Field field) {
         String fieldName = field.getName();
         if (Boolean.class.isAssignableFrom(field.getType())) {
             return "is" + capitalizeFirstLetter(fieldName);
@@ -17,17 +30,18 @@ public final class ReflectionUtils {
         }
     }
 
-    private static String getSetterName(Field field) {
+    private String getSetterName(Field field) {
         String fieldName = field.getName();
         return "get" + capitalizeFirstLetter(fieldName);
     }
 
-    public static List<FieldData> getFieldDataOfClass(Class<?> clazz) {
+    private Map<String, FieldData> $getFieldDataOfClass(Class<?> clazz) {
         return Stream.of(clazz.getDeclaredFields())
                 .map(f -> {
                     try {
                         return new FieldData(
                                 f.getAnnotation(Column.class).value(),
+                                f.getType(),
                                 clazz.getMethod(getGetterName(f)),
                                 clazz.getMethod(getSetterName(f), f.getType()),
                                 f.getAnnotation(Column.class).pk(),
@@ -37,6 +51,11 @@ public final class ReflectionUtils {
                         throw new RuntimeException(e);
                     }
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(FieldData::fieldName, f -> f));
+    }
+
+    public Map<String, FieldData> getFieldDataOfClass(Class<?> clazz) {
+        cachedFieldData.computeIfAbsent(clazz, this::$getFieldDataOfClass);
+        return cachedFieldData.get(clazz);
     }
 }

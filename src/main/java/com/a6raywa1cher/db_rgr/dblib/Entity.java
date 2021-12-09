@@ -1,4 +1,4 @@
-package com.a6raywa1cher.db_rgr.lib;
+package com.a6raywa1cher.db_rgr.dblib;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

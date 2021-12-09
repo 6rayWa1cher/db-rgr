@@ -1,4 +1,4 @@
-package com.a6raywa1cher.db_rgr.lib;
+package com.a6raywa1cher.db_rgr.dblib;
 
 import java.util.List;
 import java.util.Map;
@@ -17,9 +17,7 @@ public abstract class CrudRepository<T> {
     }
 
     private void initialize() {
-        this.fieldDataMap = ReflectionUtils.getFieldDataOfClass(entityClass)
-                .stream()
-                .collect(Collectors.toMap(FieldData::fieldName, f -> f));
+        this.fieldDataMap = ClassAnalyzer.getInstance().getFieldDataOfClass(entityClass);
         this.primaryKey = fieldDataMap.values()
                 .stream()
                 .filter(FieldData::primary)
@@ -27,6 +25,6 @@ public abstract class CrudRepository<T> {
     }
 
     public List<T> getById(Object... id) {
-
+        return null;
     }
 }
