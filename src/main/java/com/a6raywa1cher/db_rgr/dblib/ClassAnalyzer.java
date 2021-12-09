@@ -43,7 +43,7 @@ public class ClassAnalyzer {
 			.map(f -> {
 				try {
 					Column annotation = f.getAnnotation(Column.class);
-					ForeignKey foreignKey = f.getAnnotation(ForeignKey.class);
+					ForeignKey[] foreignKeys = f.getAnnotationsByType(ForeignKey.class);
 					Class<?> fieldType = f.getType();
 					Method getter = clazz.getMethod(getGetterName(f));
 					Method setter = clazz.getMethod(getSetterName(f), fieldType);
@@ -57,7 +57,7 @@ public class ClassAnalyzer {
 						getter,
 						setter,
 						pk,
-						foreignKey
+						List.of(foreignKeys)
 					);
 				} catch (NoSuchMethodException e) {
 					throw new RuntimeException(e);

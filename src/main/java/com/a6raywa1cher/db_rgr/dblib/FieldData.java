@@ -1,6 +1,7 @@
 package com.a6raywa1cher.db_rgr.dblib;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 public record FieldData(
 	String fieldName,
@@ -8,7 +9,7 @@ public record FieldData(
 	Method getter,
 	Method setter,
 	boolean primary,
-	ForeignKey foreignKeyInfo
+	List<ForeignKey> foreignKeyInfo
 ) {
 
 }
