@@ -8,10 +8,10 @@ import lombok.Data;
 @Data
 @Entity("department")
 public class Department {
-    @Column(value = "title", pk = true)
+    @Column(value = "department_title", pk = true)
     private String title;
 
-    @Column(value = "telephone_number")
+	@Column(value = "tel_number")
     private String telephoneNumber;
 
     @Column(value = "address")

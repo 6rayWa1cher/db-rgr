@@ -16,7 +16,6 @@ public class DatabaseConnector implements AutoCloseable {
     public DatabaseConnector(String jdbcUrl, String user, String password) throws SQLException {
         instantiate(Class.forName("org.postgresql.Driver"));
         this.con = DriverManager.getConnection(jdbcUrl, user, password);
-        con.setAutoCommit(false);
     }
 
     public PreparedStatement openPS(@Language("SQL") String sql, Object... params) throws SQLException {
@@ -98,26 +97,40 @@ public class DatabaseConnector implements AutoCloseable {
     }
 
     public void execute(@Language("SQL") String sql, Object... params) throws SQLException {
-        try (PreparedStatement preparedStatement = openPS(sql, params)) {
-            preparedStatement.execute();
-        }
-    }
+		try (PreparedStatement preparedStatement = openPS(sql, params)) {
+			preparedStatement.execute();
+		}
+	}
 
-    public int executeUpdate(@Language("SQL") String sql, Object... params) throws SQLException {
-        try (PreparedStatement preparedStatement = openPS(sql, params)) {
-            return preparedStatement.executeUpdate();
-        }
-    }
+	public int executeUpdate(@Language("SQL") String sql, Object... params) throws SQLException {
+		try (PreparedStatement preparedStatement = openPS(sql, params)) {
+			return preparedStatement.executeUpdate();
+		}
+	}
 
-    @Override
-    public void close() throws SQLException {
-        con.close();
-    }
+	public void withTransaction(SqlRunnable runnable) throws SQLException {
+		boolean autoCommit = con.getAutoCommit();
+		con.setAutoCommit(false);
+		try {
+			runnable.run();
+			con.commit();
+		} catch (SQLException e) {
+			con.rollback();
+			throw e;
+		} finally {
+			con.setAutoCommit(autoCommit);
+		}
+	}
 
-    public record ExecuteResult(
-            ResultSetMetaData metaData,
-            List<Object[]> result
-    ) {
+	@Override
+	public void close() throws SQLException {
+		con.close();
+	}
+
+	public record ExecuteResult(
+		ResultSetMetaData metaData,
+		List<Object[]> result
+	) {
 
     }
 }
