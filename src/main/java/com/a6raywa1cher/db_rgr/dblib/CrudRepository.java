@@ -7,7 +7,10 @@ import org.intellij.lang.annotations.Language;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,7 +25,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 	protected static ReferenceQueue<Object> referenceQueue = new ReferenceQueue<>();
 
-	protected static Map<UUID, List<EntityPhantomReference<?>>> references = new HashMap<>();
+	protected static Map<UUID, EntityPhantomReference<?>> references = new HashMap<>();
 
 	protected Map<UUID, Object[]> prevPrimaryKeys;
 
@@ -98,7 +101,7 @@ public abstract class CrudRepository<T extends Entity> {
 			.stream()
 			.map(wrapSneaky(fd -> fd.getter().invoke(t)))
 			.toArray());
-		references.computeIfAbsent(t.getUuid(), u -> new LinkedList<>()).add(new EntityPhantomReference<>(t));
+		references.put(t.getUuid(), new EntityPhantomReference<>(t));
 	}
 
 	protected void deregisterObject(T t) {
@@ -194,7 +197,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 		public void cleanup() {
 			globalPrevPrimaryKeys.get(tClass).remove(entityUuid);
-			references.remove(this);
+			references.remove(entityUuid);
 		}
 	}
 }
