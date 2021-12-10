@@ -6,6 +6,7 @@ import org.intellij.lang.annotations.Language;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,7 +18,9 @@ public abstract class CrudRepository<T extends Entity> {
 
 	protected final DatabaseConnector connector;
 
-	protected final HashMap<UUID, Object[]> prevPrimaryKeys = new HashMap<>();
+	protected static final Map<Class<? extends Entity>, Map<UUID, Object[]>> globalPrevPrimaryKeys = new HashMap<>();
+
+	protected Map<UUID, Object[]> prevPrimaryKeys;
 
 	protected ClassData classData;
 
@@ -44,6 +47,7 @@ public abstract class CrudRepository<T extends Entity> {
 		this.defaultParametersPlaceholder = getParametersPlaceholder(classData.getFieldDataList().size());
 		this.primaryFields = toFieldList(classData.getPrimaryKey());
 		this.primaryParametersPlaceholder = getParametersPlaceholder(classData.getPrimaryKey().size());
+		this.prevPrimaryKeys = globalPrevPrimaryKeys.computeIfAbsent(entityClass, (c) -> new HashMap<>());
 	}
 
 	private String toFieldList(List<FieldData> fieldData) {
