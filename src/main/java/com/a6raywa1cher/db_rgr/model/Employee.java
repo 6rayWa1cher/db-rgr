@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Employee {
+public class Employee extends Entity {
 	@Column(pk = true)
 	private String fullName;
 

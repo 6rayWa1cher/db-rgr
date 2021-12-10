@@ -21,6 +21,7 @@ public class DatabaseConnector implements AutoCloseable {
 	}
 
 	public PreparedStatement openPS(@Language("SQL") String sql, Object... params) throws SQLException {
+		System.out.println(sql);
 		PreparedStatement ps = con.prepareStatement(sql);
 		for (int i = 0; i < params.length; i++) {
 			Object param = params[i];
@@ -51,9 +52,10 @@ public class DatabaseConnector implements AutoCloseable {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> List<T> parseResultEntity(Class<T> resultType, ResultSetMetaData metaData, List<Object[]> objects) throws SQLException {
 		List<T> out = new ArrayList<>(objects.size());
-		ClassData fieldDataOfClass = classAnalyzer.getClassData(resultType);
+		ClassData fieldDataOfClass = classAnalyzer.getClassData((Class<? extends Entity>) resultType);
 		try {
 			for (Object[] obj : objects) {
 				T t = instantiate(resultType);
@@ -83,7 +85,7 @@ public class DatabaseConnector implements AutoCloseable {
 		ExecuteResult result = executeRawSelect(sql, params);
 		ResultSetMetaData metaData = result.metaData();
 		List<Object[]> objects = result.result();
-		if (resultType.isAnnotationPresent(Entity.class)) {
+		if (Entity.class.isAssignableFrom(resultType)) {
 			return parseResultEntity(resultType, metaData, objects);
 		} else {
 			return parseResultPrimitive(resultType, objects);

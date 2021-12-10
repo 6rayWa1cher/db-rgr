@@ -6,6 +6,8 @@ import com.a6raywa1cher.db_rgr.model.repository.DepartmentRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,6 +67,28 @@ public class DepartmentRepositoryUnitTest extends DatabaseInitializedTest {
 		Department result = repository.getAll().get(0);
 
 		assertEquals(department, result);
+	}
+
+	@Test
+	void testUpdate__doesnt_update_others() {
+		Department department1 = new Department("a", "b", "c");
+		repository.insert(department1);
+		Department department2 = new Department("x", "y", "z");
+		repository.insert(department2);
+
+		department1.setTitle("e");
+		department1.setTelephoneNumber("f");
+		department1.setAddress("g");
+
+		repository.update(department1);
+
+		List<Department> resultList = repository.getAll();
+		resultList.sort(Comparator.comparing(Department::getTitle));
+		Department result1 = resultList.get(0);
+		Department result2 = resultList.get(1);
+
+		assertEquals(department1, result1);
+		assertEquals(department2, result2);
 	}
 
 	@Test

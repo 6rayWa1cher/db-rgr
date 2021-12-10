@@ -8,10 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Department {
+public class Department extends Entity {
 	@Column(value = "department_title", pk = true)
 	private String title;
 

@@ -1,17 +1,22 @@
 package com.a6raywa1cher.db_rgr.dblib;
 
+import com.a6raywa1cher.db_rgr.lib.ArrayUtils;
 import lombok.SneakyThrows;
 import org.intellij.lang.annotations.Language;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class CrudRepository<T> {
+public abstract class CrudRepository<T extends Entity> {
 	protected final Class<T> entityClass;
 
 	protected final DatabaseConnector connector;
+
+	protected final HashMap<UUID, Object[]> prevPrimaryKeys = new HashMap<>();
 
 	protected ClassData classData;
 
@@ -82,23 +87,44 @@ public abstract class CrudRepository<T> {
 			.collect(Collectors.joining(","));
 	}
 
+	protected void registerObject(T t) {
+		prevPrimaryKeys.put(t.getUuid(), classData.getPrimaryKey()
+			.stream()
+			.map(fd -> {
+				try {
+					return fd.getter().invoke(t);
+				} catch (InvocationTargetException | IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+			})
+			.toArray());
+	}
+
+	protected void deregisterObject(T t) {
+		prevPrimaryKeys.remove(t.getUuid());
+	}
+
 	@SneakyThrows
 	public List<T> getAll() {
-		return connector.executeSelect(
+		List<T> out = connector.executeSelect(
 			unsafeInjectParameters("SELECT * FROM public.%s", classData.getTableName()),
 			entityClass
 		);
+		out.forEach(this::registerObject);
+		return out;
 	}
 
 	@SneakyThrows
 	public T getById(Object... id) {
-		return connector.executeSelectSingle(
+		T out = connector.executeSelectSingle(
 			unsafeInjectParameters("SELECT * from public.%s WHERE (%s) = (%s)",
 				tableName,
 				primaryFields,
 				primaryParametersPlaceholder
 			), entityClass, id
 		);
+		registerObject(out);
+		return out;
 	}
 
 	@SneakyThrows
@@ -110,6 +136,7 @@ public abstract class CrudRepository<T> {
 				defaultParametersPlaceholder
 			), objectToParameters(t)
 		);
+		registerObject(t);
 	}
 
 	@SneakyThrows
@@ -121,13 +148,17 @@ public abstract class CrudRepository<T> {
 
 	@SneakyThrows
 	public void update(T t) {
+		Object[] prevPrimaryKey = prevPrimaryKeys.computeIfAbsent(t.getUuid(), u -> objectToPrimaryParameters(t));
 		connector.executeUpdate(
-			unsafeInjectParameters("UPDATE public.%s SET (%s) = (%s)",
+			unsafeInjectParameters("UPDATE public.%s SET (%s) = (%s) WHERE (%s) = (%s)",
 				tableName,
 				fields,
-				defaultParametersPlaceholder
-			), objectToParameters(t)
+				defaultParametersPlaceholder,
+				primaryFields,
+				primaryParametersPlaceholder
+			), ArrayUtils.concat(objectToParameters(t), prevPrimaryKey)
 		);
+		registerObject(t);
 	}
 
 	@SneakyThrows
@@ -139,5 +170,6 @@ public abstract class CrudRepository<T> {
 				primaryParametersPlaceholder
 			), objectToPrimaryParameters(t)
 		);
+		deregisterObject(t);
 	}
 }

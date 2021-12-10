@@ -7,10 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmployeeRequirement {
+public class EmployeeRequirement extends Entity {
 	@Column(pk = true)
 	private String departmentTitle;
 

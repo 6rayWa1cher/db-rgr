@@ -8,10 +8,9 @@ import lombok.NoArgsConstructor;
 
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmployeeType {
+public class EmployeeType extends Entity {
 	@Column(pk = true)
 	private String employeeRank;
 

@@ -1,5 +1,7 @@
 package com.a6raywa1cher.db_rgr.dblib;
 
+import lombok.SneakyThrows;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -14,7 +16,7 @@ import static com.a6raywa1cher.db_rgr.lib.StringUtils.capitalizeFirstLetter;
 public class ClassAnalyzer {
 	private final static ClassAnalyzer classAnalyzer = new ClassAnalyzer();
 
-	private final Map<Class<?>, ClassData> cachedFieldData = new HashMap<>();
+	private final Map<Class<? extends Entity>, ClassData> cachedFieldData = new HashMap<>();
 
 	private ClassAnalyzer() {
 
@@ -38,8 +40,10 @@ public class ClassAnalyzer {
 		return "set" + capitalizeFirstLetter(fieldName);
 	}
 
-	private ClassData $getClassData(Class<?> clazz) {
+	@SneakyThrows
+	private ClassData $getClassData(Class<? extends Entity> clazz) {
 		List<FieldData> fieldData = Stream.of(clazz.getDeclaredFields())
+			.filter(f -> f.isAnnotationPresent(Column.class))
 			.map(f -> {
 				try {
 					Column annotation = f.getAnnotation(Column.class);
@@ -64,14 +68,14 @@ public class ClassAnalyzer {
 				}
 			})
 			.collect(Collectors.toList());
-		String tableName = clazz.getAnnotation(Entity.class).value();
+		String tableName = clazz.getDeclaredConstructor().newInstance().getTableName();
 		return new ClassData(
 			fieldData,
 			tableName.equals("") ? camelCaseToUnderscore(clazz.getSimpleName()) : tableName
 		);
 	}
 
-	public ClassData getClassData(Class<?> clazz) {
+	public ClassData getClassData(Class<? extends Entity> clazz) {
 		cachedFieldData.computeIfAbsent(clazz, this::$getClassData);
 		return cachedFieldData.get(clazz);
 	}

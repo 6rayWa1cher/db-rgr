@@ -7,10 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class MachineryType {
+public class MachineryType extends Entity {
 	@Column(pk = true)
 	private String machineryTitle;
 

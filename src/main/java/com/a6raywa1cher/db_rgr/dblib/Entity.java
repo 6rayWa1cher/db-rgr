@@ -1,12 +1,15 @@
 package com.a6raywa1cher.db_rgr.dblib;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.UUID;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Entity {
-	String value() default "";
+public abstract class Entity {
+	private final UUID uuid = UUID.randomUUID();
+
+	public UUID getUuid() {
+		return uuid;
+	}
+
+	public String getTableName() {
+		return "";
+	}
 }
