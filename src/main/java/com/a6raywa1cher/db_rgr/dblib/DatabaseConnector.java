@@ -1,5 +1,6 @@
 package com.a6raywa1cher.db_rgr.dblib;
 
+import com.a6raywa1cher.db_rgr.dblib.datatypes.LocalDateDataType;
 import lombok.SneakyThrows;
 import org.intellij.lang.annotations.Language;
 
@@ -12,16 +13,27 @@ import java.util.Objects;
 public class DatabaseConnector implements AutoCloseable {
 	private final Connection con;
 	private final ClassAnalyzer classAnalyzer = ClassAnalyzer.getInstance();
+	private final List<DataType> dataTypes = new ArrayList<>();
 
 	@SneakyThrows(ClassNotFoundException.class)
 	public DatabaseConnector(String jdbcUrl, String user, String password) throws SQLException {
 		instantiate(Class.forName("org.postgresql.Driver"));
 		this.con = DriverManager.getConnection(jdbcUrl, user, password);
 		con.setAutoCommit(true);
+		addDefaultDataTypes();
 	}
 
+	private void addDefaultDataTypes() {
+		dataTypes.add(new LocalDateDataType());
+	}
+
+	public void registerDataType(DataType<?, ?> dataType) {
+		dataTypes.add(dataType);
+	}
+
+
 	public PreparedStatement openPS(@Language("SQL") String sql, Object... params) throws SQLException {
-		System.out.println(sql);
+//		System.out.println(sql);
 		PreparedStatement ps = con.prepareStatement(sql);
 		for (int i = 0; i < params.length; i++) {
 			Object param = params[i];
@@ -60,10 +72,22 @@ public class DatabaseConnector implements AutoCloseable {
 			for (Object[] obj : objects) {
 				T t = instantiate(resultType);
 				for (int i = 0; i < obj.length; i++) {
+					Object o = obj[i];
 					String fieldName = metaData.getColumnName(i + 1);
 					FieldData fieldData = fieldDataOfClass.getByName(fieldName);
 					Objects.requireNonNull(fieldData);
-					fieldData.setter().invoke(t, fieldData.type().cast(obj[i]));
+					DataType eligibleDataType = dataTypes.stream()
+						.filter(dt -> dt.getSerializedType().equals(o.getClass()) &&
+							dt.getDeserializedType().equals(fieldData.type()))
+						.findFirst()
+						.orElse(null);
+					if (eligibleDataType != null) {
+						fieldData.setter().invoke(t,
+							eligibleDataType.deserialize(eligibleDataType.getSerializedType().cast(o))
+						);
+					} else {
+						fieldData.setter().invoke(t, fieldData.type().cast(o));
+					}
 				}
 				out.add(t);
 			}

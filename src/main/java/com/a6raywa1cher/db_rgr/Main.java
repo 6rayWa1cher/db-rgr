@@ -38,7 +38,7 @@ public class Main {
 				last_promotion_date date CHECK ( last_promotion_date <= now()::date ),
 				PRIMARY KEY (full_name, department_title),
 				FOREIGN KEY (position, employee_rank) REFERENCES public.employee_type (position, employee_rank)
-					MATCH FULL ON UPDATE CASCADE ON DELETE SET NULL
+					MATCH FULL ON UPDATE CASCADE ON DELETE RESTRICT
 			);
 			CREATE TABLE IF NOT EXISTS public.machinery_requirement (
 				department_title varchar(255) REFERENCES public.department

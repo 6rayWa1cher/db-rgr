@@ -4,7 +4,10 @@ import com.a6raywa1cher.db_rgr.DatabaseInitializedTest;
 import com.a6raywa1cher.db_rgr.EntityFactory;
 import com.a6raywa1cher.db_rgr.model.Department;
 import com.a6raywa1cher.db_rgr.model.EmployeeRequirement;
+import com.a6raywa1cher.db_rgr.model.EmployeeType;
+import com.a6raywa1cher.db_rgr.model.repository.DepartmentRepository;
 import com.a6raywa1cher.db_rgr.model.repository.EmployeeRequirementRepository;
+import com.a6raywa1cher.db_rgr.model.repository.EmployeeTypeRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -14,16 +17,18 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class EmployeeRequirementUnitTest extends DatabaseInitializedTest {
+public class EmployeeRequirementRepositoryUnitTest extends DatabaseInitializedTest {
 	static EmployeeRequirementRepository repository;
+	static EmployeeTypeRepository employeeTypeRepository;
+	static DepartmentRepository departmentRepository;
 	static EntityFactory entityFactory;
-//	Department sampleDepartment = new Department("1", "2", "3");
-//	EmployeeType sampleEmployeeType = new EmployeeType("j", "k", 5);
 
 	@BeforeAll
 	static void init() {
 		entityFactory = new EntityFactory(connector);
 		repository = new EmployeeRequirementRepository(connector);
+		departmentRepository = new DepartmentRepository(connector);
+		employeeTypeRepository = new EmployeeTypeRepository(connector);
 	}
 
 	@Test
@@ -72,7 +77,7 @@ public class EmployeeRequirementUnitTest extends DatabaseInitializedTest {
 	}
 
 	@Test
-	void testUpdate__doesnt_update_others() {
+	void testUpdate__doesntUpdateOthers() {
 		EmployeeRequirement requirement1 = entityFactory.createEmployeeRequirement();
 		EmployeeRequirement requirement2 = entityFactory.createEmployeeRequirement();
 
@@ -105,7 +110,7 @@ public class EmployeeRequirementUnitTest extends DatabaseInitializedTest {
 	}
 
 	@Test
-	void testDelete__doesnt_delete_others() {
+	void testDelete__doesntDeleteOthers() {
 		EmployeeRequirement requirement1 = entityFactory.createEmployeeRequirement();
 		EmployeeRequirement requirement2 = entityFactory.createEmployeeRequirement();
 
@@ -115,5 +120,27 @@ public class EmployeeRequirementUnitTest extends DatabaseInitializedTest {
 		assertEquals(requirement2, repository.getById(
 			requirement2.getDepartmentTitle(), requirement2.getEmployeeRank(), requirement2.getPosition()
 		));
+	}
+
+	@Test
+	void testDelete__deleteDepartmentThenCascade() {
+		EmployeeRequirement requirement = entityFactory.createEmployeeRequirement();
+
+		Department department = departmentRepository.getById(requirement.getDepartmentTitle());
+
+		departmentRepository.delete(department);
+
+		assertEquals(0, repository.count());
+	}
+
+	@Test
+	void testDelete__deleteEmployeeTypeThenCascade() {
+		EmployeeRequirement requirement = entityFactory.createEmployeeRequirement();
+
+		EmployeeType employeeType = employeeTypeRepository.getById(requirement.getEmployeeRank(), requirement.getPosition());
+
+		employeeTypeRepository.delete(employeeType);
+
+		assertEquals(0, repository.count());
 	}
 }

@@ -12,7 +12,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MachineryTypeUnitTest extends DatabaseInitializedTest {
+public class MachineryTypeRepositoryUnitTest extends DatabaseInitializedTest {
 	static MachineryTypeRepository repository;
 
 	@BeforeAll
