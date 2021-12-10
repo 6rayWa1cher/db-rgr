@@ -4,12 +4,13 @@ import com.a6raywa1cher.db_rgr.lib.ArrayUtils;
 import lombok.SneakyThrows;
 import org.intellij.lang.annotations.Language;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.a6raywa1cher.db_rgr.lib.ReflectionUtils.wrapSneaky;
 
 public abstract class CrudRepository<T extends Entity> {
 	protected final Class<T> entityClass;
@@ -54,26 +55,14 @@ public abstract class CrudRepository<T extends Entity> {
 	private Object[] objectToParameters(T t) {
 		return classData.getFieldDataList()
 			.stream()
-			.map(fd -> {
-				try {
-					return fd.getter().invoke(t);
-				} catch (IllegalAccessException | InvocationTargetException e) {
-					throw new RuntimeException(e);
-				}
-			})
+			.map(wrapSneaky(fd -> fd.getter().invoke(t)))
 			.toArray();
 	}
 
 	private Object[] objectToPrimaryParameters(T t) {
 		return classData.getPrimaryKey()
 			.stream()
-			.map(fd -> {
-				try {
-					return fd.getter().invoke(t);
-				} catch (IllegalAccessException | InvocationTargetException e) {
-					throw new RuntimeException(e);
-				}
-			})
+			.map(wrapSneaky(fd -> fd.getter().invoke(t)))
 			.toArray();
 	}
 
@@ -90,13 +79,7 @@ public abstract class CrudRepository<T extends Entity> {
 	protected void registerObject(T t) {
 		prevPrimaryKeys.put(t.getUuid(), classData.getPrimaryKey()
 			.stream()
-			.map(fd -> {
-				try {
-					return fd.getter().invoke(t);
-				} catch (InvocationTargetException | IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-			})
+			.map(wrapSneaky(fd -> fd.getter().invoke(t)))
 			.toArray());
 	}
 

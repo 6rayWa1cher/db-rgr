@@ -1,7 +1,6 @@
 package com.a6raywa1cher.db_rgr.lib;
 
 import java.util.Locale;
-import java.util.stream.IntStream;
 
 public final class StringUtils {
 	public static String capitalizeFirstLetter(String s) {
@@ -13,20 +12,18 @@ public final class StringUtils {
 	}
 
 	public static String camelCaseToUnderscore(String str) {
-		String s = lowerFirstLetter(str);
-		int[] capitals = IntStream.range(0, s.length())
-			.filter(i -> Character.isUpperCase(s.charAt(i)))
-			.toArray();
-		if (capitals.length == 0) {
-			return s;
+		if (str.length() == 0) {
+			return "";
 		}
-		StringBuilder sb = new StringBuilder(s.length());
-		int prev = 0;
-		for (int curr : capitals) {
-			sb.append(s.substring(prev, curr).toLowerCase(Locale.ROOT)).append("_");
-			prev = curr;
+		StringBuilder sb = new StringBuilder("" + Character.toLowerCase(str.charAt(0)));
+		for (int i = 1; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if (Character.isUpperCase(c)) {
+				sb.append('_').append(Character.toLowerCase(c));
+			} else {
+				sb.append(c);
+			}
 		}
-		sb.append(s.substring(prev).toLowerCase(Locale.ROOT));
 		return sb.toString();
 	}
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.a6raywa1cher.db_rgr.lib.ReflectionUtils.wrapSneaky;
 import static com.a6raywa1cher.db_rgr.lib.StringUtils.camelCaseToUnderscore;
 import static com.a6raywa1cher.db_rgr.lib.StringUtils.capitalizeFirstLetter;
 
@@ -44,29 +45,25 @@ public class ClassAnalyzer {
 	private ClassData $getClassData(Class<? extends Entity> clazz) {
 		List<FieldData> fieldData = Stream.of(clazz.getDeclaredFields())
 			.filter(f -> f.isAnnotationPresent(Column.class))
-			.map(f -> {
-				try {
-					Column annotation = f.getAnnotation(Column.class);
-					ForeignKey[] foreignKeys = f.getAnnotationsByType(ForeignKey.class);
-					Class<?> fieldType = f.getType();
-					Method getter = clazz.getMethod(getGetterName(f));
-					Method setter = clazz.getMethod(getSetterName(f), fieldType);
-					boolean pk = annotation.pk();
-					String dbFieldName = annotation.value().equals("") ?
-						camelCaseToUnderscore(f.getName()) :
-						annotation.value();
-					return new FieldData(
-						dbFieldName,
-						fieldType,
-						getter,
-						setter,
-						pk,
-						List.of(foreignKeys)
-					);
-				} catch (NoSuchMethodException e) {
-					throw new RuntimeException(e);
-				}
-			})
+			.map(wrapSneaky(f -> {
+				Column annotation = f.getAnnotation(Column.class);
+				ForeignKey[] foreignKeys = f.getAnnotationsByType(ForeignKey.class);
+				Class<?> fieldType = f.getType();
+				Method getter = clazz.getMethod(getGetterName(f));
+				Method setter = clazz.getMethod(getSetterName(f), fieldType);
+				boolean pk = annotation.pk();
+				String dbFieldName = annotation.value().equals("") ?
+					camelCaseToUnderscore(f.getName()) :
+					annotation.value();
+				return new FieldData(
+					dbFieldName,
+					fieldType,
+					getter,
+					setter,
+					pk,
+					List.of(foreignKeys)
+				);
+			}))
 			.collect(Collectors.toList());
 		String tableName = clazz.getDeclaredConstructor().newInstance().getTableName();
 		return new ClassData(
