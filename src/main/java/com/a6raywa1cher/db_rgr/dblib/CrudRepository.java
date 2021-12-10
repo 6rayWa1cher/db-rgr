@@ -111,7 +111,7 @@ public abstract class CrudRepository<T extends Entity> {
 	}
 
 	@SneakyThrows
-	public void insert(T t) {
+	public T insert(T t) {
 		connector.executeUpdate(
 			unsafeInjectParameters("INSERT INTO public.%s (%s) VALUES (%s)",
 				tableName,
@@ -120,6 +120,7 @@ public abstract class CrudRepository<T extends Entity> {
 			), objectToParameters(t)
 		);
 		registerObject(t);
+		return t;
 	}
 
 	@SneakyThrows
