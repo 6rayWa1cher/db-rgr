@@ -4,10 +4,10 @@ import com.a6raywa1cher.db_rgr.lib.ArrayUtils;
 import lombok.SneakyThrows;
 import org.intellij.lang.annotations.Language;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,6 +19,10 @@ public abstract class CrudRepository<T extends Entity> {
 	protected final DatabaseConnector connector;
 
 	protected static final Map<Class<? extends Entity>, Map<UUID, Object[]>> globalPrevPrimaryKeys = new HashMap<>();
+
+	protected static ReferenceQueue<Object> referenceQueue = new ReferenceQueue<>();
+
+	protected static Map<UUID, List<EntityPhantomReference<?>>> references = new HashMap<>();
 
 	protected Map<UUID, Object[]> prevPrimaryKeys;
 
@@ -80,19 +84,31 @@ public abstract class CrudRepository<T extends Entity> {
 			.collect(Collectors.joining(","));
 	}
 
+	private static void checkReferenceQueue() {
+		Reference<?> reference;
+		while ((reference = referenceQueue.poll()) != null) {
+			EntityPhantomReference<?> entityPhantomReference = (EntityPhantomReference<?>) reference;
+			entityPhantomReference.cleanup();
+			System.out.println("Cleaned!");
+		}
+	}
+
 	protected void registerObject(T t) {
 		prevPrimaryKeys.put(t.getUuid(), classData.getPrimaryKey()
 			.stream()
 			.map(wrapSneaky(fd -> fd.getter().invoke(t)))
 			.toArray());
+		references.computeIfAbsent(t.getUuid(), u -> new LinkedList<>()).add(new EntityPhantomReference<>(t));
 	}
 
 	protected void deregisterObject(T t) {
 		prevPrimaryKeys.remove(t.getUuid());
+		references.remove(t.getUuid());
 	}
 
 	@SneakyThrows
 	public List<T> getAll() {
+		checkReferenceQueue();
 		List<T> out = connector.executeSelect(
 			unsafeInjectParameters("SELECT * FROM public.%s", classData.getTableName()),
 			entityClass
@@ -103,6 +119,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 	@SneakyThrows
 	public T getById(Object... id) {
+		checkReferenceQueue();
 		T out = connector.executeSelectSingle(
 			unsafeInjectParameters("SELECT * from public.%s WHERE (%s) = (%s)",
 				tableName,
@@ -116,6 +133,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 	@SneakyThrows
 	public T insert(T t) {
+		checkReferenceQueue();
 		connector.executeUpdate(
 			unsafeInjectParameters("INSERT INTO public.%s (%s) VALUES (%s)",
 				tableName,
@@ -129,6 +147,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 	@SneakyThrows
 	public long count() {
+		checkReferenceQueue();
 		return connector.executeSelectSingle(
 			unsafeInjectParameters("SELECT count(*) from public.%s", tableName), Long.class
 		);
@@ -136,6 +155,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 	@SneakyThrows
 	public void update(T t) {
+		checkReferenceQueue();
 		Object[] prevPrimaryKey = prevPrimaryKeys.computeIfAbsent(t.getUuid(), u -> objectToPrimaryParameters(t));
 		connector.executeUpdate(
 			unsafeInjectParameters("UPDATE public.%s SET (%s) = (%s) WHERE (%s) = (%s)",
@@ -151,6 +171,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 	@SneakyThrows
 	public void delete(T t) {
+		checkReferenceQueue();
 		connector.executeUpdate(
 			unsafeInjectParameters("DELETE FROM public.%s WHERE (%s) = (%s)",
 				tableName,
@@ -159,5 +180,21 @@ public abstract class CrudRepository<T extends Entity> {
 			), objectToPrimaryParameters(t)
 		);
 		deregisterObject(t);
+	}
+
+	private static class EntityPhantomReference<T extends Entity> extends PhantomReference<T> {
+		private final UUID entityUuid;
+		private final Class<T> tClass;
+
+		public EntityPhantomReference(T referent) {
+			super(referent, referenceQueue);
+			this.entityUuid = referent.getUuid();
+			this.tClass = (Class<T>) referent.getClass();
+		}
+
+		public void cleanup() {
+			globalPrevPrimaryKeys.get(tClass).remove(entityUuid);
+			references.remove(this);
+		}
 	}
 }
