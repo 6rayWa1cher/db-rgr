@@ -16,6 +16,6 @@ public class MachineryRequirement extends Entity {
 	@Column(pk = true)
 	private String machineryTitle;
 
-	@Column(pk = true)
+	@Column
 	private Integer count;
 }
