@@ -17,7 +17,7 @@ public class DepartmentRepositoryUnitTest extends DatabaseInitializedTest {
 
 	@BeforeAll
 	static void createDepartmentRepository() {
-		repository = new DepartmentRepository(connector);
+		repository = new DepartmentRepository(em);
 	}
 
 	@Test

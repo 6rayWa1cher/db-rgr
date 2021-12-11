@@ -25,10 +25,10 @@ public class EmployeeRequirementRepositoryUnitTest extends DatabaseInitializedTe
 
 	@BeforeAll
 	static void init() {
-		entityFactory = new EntityFactory(connector);
-		repository = new EmployeeRequirementRepository(connector);
-		departmentRepository = new DepartmentRepository(connector);
-		employeeTypeRepository = new EmployeeTypeRepository(connector);
+		entityFactory = new EntityFactory(em);
+		repository = new EmployeeRequirementRepository(em);
+		departmentRepository = new DepartmentRepository(em);
+		employeeTypeRepository = new EmployeeTypeRepository(em);
 	}
 
 	@Test

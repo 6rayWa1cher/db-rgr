@@ -1,4 +1,6 @@
-package com.a6raywa1cher.db_rgr.dblib;
+package com.a6raywa1cher.db_rgr.dblib.analyzer;
+
+import com.a6raywa1cher.db_rgr.dblib.entity.ForeignKey;
 
 import java.lang.reflect.Method;
 import java.util.List;

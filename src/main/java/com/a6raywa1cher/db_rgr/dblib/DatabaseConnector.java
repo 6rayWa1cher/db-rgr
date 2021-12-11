@@ -1,39 +1,25 @@
 package com.a6raywa1cher.db_rgr.dblib;
 
-import com.a6raywa1cher.db_rgr.dblib.datatypes.LocalDateDataType;
+import com.a6raywa1cher.db_rgr.lib.ReflectionUtils;
 import lombok.SneakyThrows;
 import org.intellij.lang.annotations.Language;
 
-import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class DatabaseConnector implements AutoCloseable {
 	private final Connection con;
-	private final ClassAnalyzer classAnalyzer = ClassAnalyzer.getInstance();
-	private final List<DataType> dataTypes = new ArrayList<>();
 
 	@SneakyThrows(ClassNotFoundException.class)
-	public DatabaseConnector(String jdbcUrl, String user, String password) throws SQLException {
-		instantiate(Class.forName("org.postgresql.Driver"));
+	DatabaseConnector(String jdbcUrl, String user, String password) throws SQLException {
+		ReflectionUtils.instantiate(Class.forName("org.postgresql.Driver"));
 		this.con = DriverManager.getConnection(jdbcUrl, user, password);
 		con.setAutoCommit(true);
-		addDefaultDataTypes();
-	}
-
-	private void addDefaultDataTypes() {
-		dataTypes.add(new LocalDateDataType());
-	}
-
-	public void registerDataType(DataType<?, ?> dataType) {
-		dataTypes.add(dataType);
 	}
 
 
 	public PreparedStatement openPS(@Language("SQL") String sql, Object... params) throws SQLException {
-//		System.out.println(sql);
 		PreparedStatement ps = con.prepareStatement(sql);
 		for (int i = 0; i < params.length; i++) {
 			Object param = params[i];
@@ -42,12 +28,7 @@ public class DatabaseConnector implements AutoCloseable {
 		return ps;
 	}
 
-	@SneakyThrows
-	private <T> T instantiate(Class<T> type) {
-		return type.getDeclaredConstructor().newInstance();
-	}
-
-	public ExecuteResult executeRawSelect(@Language("SQL") String sql, Object... params) throws SQLException {
+	public ExecuteResult executeSelect(@Language("SQL") String sql, Object... params) throws SQLException {
 		try (PreparedStatement preparedStatement = openPS(sql, params)) {
 			ResultSet resultSet = preparedStatement.executeQuery();
 			ResultSetMetaData metaData = resultSet.getMetaData();
@@ -62,62 +43,6 @@ public class DatabaseConnector implements AutoCloseable {
 			}
 			return new ExecuteResult(metaData, out);
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> List<T> parseResultEntity(Class<T> resultType, ResultSetMetaData metaData, List<Object[]> objects) throws SQLException {
-		List<T> out = new ArrayList<>(objects.size());
-		ClassData fieldDataOfClass = classAnalyzer.getClassData((Class<? extends Entity>) resultType);
-		try {
-			for (Object[] obj : objects) {
-				T t = instantiate(resultType);
-				for (int i = 0; i < obj.length; i++) {
-					Object o = obj[i];
-					String fieldName = metaData.getColumnName(i + 1);
-					FieldData fieldData = fieldDataOfClass.getByName(fieldName);
-					Objects.requireNonNull(fieldData);
-					DataType eligibleDataType = dataTypes.stream()
-						.filter(dt -> dt.getSerializedType().equals(o.getClass()) &&
-							dt.getDeserializedType().equals(fieldData.type()))
-						.findFirst()
-						.orElse(null);
-					if (eligibleDataType != null) {
-						fieldData.setter().invoke(t,
-							eligibleDataType.deserialize(eligibleDataType.getSerializedType().cast(o))
-						);
-					} else {
-						fieldData.setter().invoke(t, fieldData.type().cast(o));
-					}
-				}
-				out.add(t);
-			}
-			return out;
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private <T> List<T> parseResultPrimitive(Class<T> resultType, List<Object[]> objects) {
-		List<T> out = new ArrayList<>(objects.size());
-		for (Object[] obj : objects) {
-			out.add(resultType.cast(obj[0]));
-		}
-		return out;
-	}
-
-	public <T> List<T> executeSelect(@Language("SQL") String sql, Class<T> resultType, Object... params) throws SQLException {
-		ExecuteResult result = executeRawSelect(sql, params);
-		ResultSetMetaData metaData = result.metaData();
-		List<Object[]> objects = result.result();
-		if (Entity.class.isAssignableFrom(resultType)) {
-			return parseResultEntity(resultType, metaData, objects);
-		} else {
-			return parseResultPrimitive(resultType, objects);
-		}
-	}
-
-	public <T> T executeSelectSingle(@Language("SQL") String sql, Class<T> resultType, Object... params) throws SQLException {
-		return executeSelect(sql, resultType, params).stream().findFirst().orElse(null);
 	}
 
 	public void execute(@Language("SQL") String sql, Object... params) throws SQLException {
@@ -151,10 +76,4 @@ public class DatabaseConnector implements AutoCloseable {
 		con.close();
 	}
 
-	public record ExecuteResult(
-		ResultSetMetaData metaData,
-		List<Object[]> result
-	) {
-
-	}
 }

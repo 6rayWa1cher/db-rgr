@@ -28,10 +28,10 @@ public class EmployeeRepositoryUnitTest extends DatabaseInitializedTest {
 
 	@BeforeAll
 	static void init() {
-		entityFactory = new EntityFactory(connector);
-		repository = new EmployeeRepository(connector);
-		departmentRepository = new DepartmentRepository(connector);
-		employeeTypeRepository = new EmployeeTypeRepository(connector);
+		entityFactory = new EntityFactory(em);
+		repository = new EmployeeRepository(em);
+		departmentRepository = new DepartmentRepository(em);
+		employeeTypeRepository = new EmployeeTypeRepository(em);
 	}
 
 	@Test

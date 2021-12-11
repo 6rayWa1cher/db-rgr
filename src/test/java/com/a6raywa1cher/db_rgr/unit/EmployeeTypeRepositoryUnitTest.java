@@ -17,7 +17,7 @@ public class EmployeeTypeRepositoryUnitTest extends DatabaseInitializedTest {
 
 	@BeforeAll
 	static void createEmployeeTypeRepository() {
-		repository = new EmployeeTypeRepository(connector);
+		repository = new EmployeeTypeRepository(em);
 	}
 
 	@Test

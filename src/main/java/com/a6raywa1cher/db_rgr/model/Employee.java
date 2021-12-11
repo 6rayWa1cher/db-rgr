@@ -1,7 +1,7 @@
 package com.a6raywa1cher.db_rgr.model;
 
-import com.a6raywa1cher.db_rgr.dblib.Column;
-import com.a6raywa1cher.db_rgr.dblib.Entity;
+import com.a6raywa1cher.db_rgr.dblib.entity.Column;
+import com.a6raywa1cher.db_rgr.dblib.entity.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

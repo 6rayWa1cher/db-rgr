@@ -1,17 +1,17 @@
 package com.a6raywa1cher.db_rgr;
 
-import com.a6raywa1cher.db_rgr.dblib.DatabaseConnector;
+import com.a6raywa1cher.db_rgr.dblib.EntityManager;
 import lombok.SneakyThrows;
 
 public class CommonSqlQueries {
-	private final DatabaseConnector connector;
+	private final EntityManager em;
 
-	public CommonSqlQueries(DatabaseConnector connector) {
-		this.connector = connector;
+	public CommonSqlQueries(EntityManager em) {
+		this.em = em;
 	}
 
 	@SneakyThrows
 	public String getDatabaseName() {
-		return connector.executeSelectSingle("SELECT current_database()", String.class);
+		return em.executeSelectSingle("SELECT current_database()", String.class);
 	}
 }

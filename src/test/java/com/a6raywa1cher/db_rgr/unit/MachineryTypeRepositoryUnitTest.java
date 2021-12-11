@@ -17,7 +17,7 @@ public class MachineryTypeRepositoryUnitTest extends DatabaseInitializedTest {
 
 	@BeforeAll
 	static void createMachineryTypeRepository() {
-		repository = new MachineryTypeRepository(connector);
+		repository = new MachineryTypeRepository(em);
 	}
 
 	@Test

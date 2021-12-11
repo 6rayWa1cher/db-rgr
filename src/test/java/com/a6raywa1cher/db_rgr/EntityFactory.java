@@ -1,6 +1,6 @@
 package com.a6raywa1cher.db_rgr;
 
-import com.a6raywa1cher.db_rgr.dblib.DatabaseConnector;
+import com.a6raywa1cher.db_rgr.dblib.EntityManager;
 import com.a6raywa1cher.db_rgr.model.*;
 import com.a6raywa1cher.db_rgr.model.repository.*;
 
@@ -17,14 +17,14 @@ public class EntityFactory {
 	private final MachineryTypeRepository machineryTypeRepository;
 	private int i = 0;
 
-	public EntityFactory(DatabaseConnector connector) {
-		this.departmentRepository = new DepartmentRepository(connector);
-		this.employeeRepository = new EmployeeRepository(connector);
-		this.employeeRequirementRepository = new EmployeeRequirementRepository(connector);
-		this.employeeTypeRepository = new EmployeeTypeRepository(connector);
-		this.machineryRepository = new MachineryRepository(connector);
-		this.machineryRequirementRepository = new MachineryRequirementRepository(connector);
-		this.machineryTypeRepository = new MachineryTypeRepository(connector);
+	public EntityFactory(EntityManager em) {
+		this.departmentRepository = new DepartmentRepository(em);
+		this.employeeRepository = new EmployeeRepository(em);
+		this.employeeRequirementRepository = new EmployeeRequirementRepository(em);
+		this.employeeTypeRepository = new EmployeeTypeRepository(em);
+		this.machineryRepository = new MachineryRepository(em);
+		this.machineryRequirementRepository = new MachineryRequirementRepository(em);
+		this.machineryTypeRepository = new MachineryTypeRepository(em);
 	}
 
 	private <T> T first(T left, T right) {

@@ -1,5 +1,7 @@
 package com.a6raywa1cher.db_rgr.lib;
 
+import lombok.SneakyThrows;
+
 import java.util.function.Function;
 
 public final class ReflectionUtils {
@@ -11,6 +13,12 @@ public final class ReflectionUtils {
 				throw new RuntimeException(e);
 			}
 		};
+	}
+
+
+	@SneakyThrows
+	public static <T> T instantiate(Class<T> type) {
+		return type.getDeclaredConstructor().newInstance();
 	}
 
 	@FunctionalInterface

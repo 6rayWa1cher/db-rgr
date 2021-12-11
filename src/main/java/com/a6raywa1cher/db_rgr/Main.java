@@ -1,16 +1,14 @@
 package com.a6raywa1cher.db_rgr;
 
-import com.a6raywa1cher.db_rgr.config.Config;
-import com.a6raywa1cher.db_rgr.config.ConfigLoader;
-import com.a6raywa1cher.db_rgr.dblib.DatabaseConnector;
-import com.a6raywa1cher.db_rgr.lib.ResourcesUtils;
+import com.a6raywa1cher.db_rgr.dblib.DbLibInitializer;
+import com.a6raywa1cher.db_rgr.dblib.EntityManager;
 import com.a6raywa1cher.db_rgr.model.repository.DepartmentRepository;
 
 import java.sql.SQLException;
 
 public class Main {
-	public static void createTables(DatabaseConnector connector) throws SQLException {
-		connector.execute("""
+	public static void createTables(EntityManager em) throws SQLException {
+		em.execute("""
 			CREATE TABLE IF NOT EXISTS public.department (
 				department_title varchar(255) PRIMARY KEY,
 				tel_number varchar(50),
@@ -73,8 +71,8 @@ public class Main {
 			""");
 	}
 
-	public static void dropDatabase(DatabaseConnector connector) throws SQLException {
-		connector.executeUpdate("""
+	public static void dropDatabase(EntityManager em) throws SQLException {
+		em.executeUpdate("""
 			drop table if exists machinery_requirement cascade;
 			drop table if exists employee_requirement cascade;
 			drop table if exists machinery cascade;
@@ -85,20 +83,13 @@ public class Main {
 			""");
 	}
 
-	public static DatabaseConnector initConnector() throws SQLException {
-		ConfigLoader configLoader = new ConfigLoader(ResourcesUtils.getPathOfResource("config.yml"));
-		Config config = configLoader.getConfig();
-		Config.Db db = config.getDb();
-		return new DatabaseConnector(db.getJdbc(), db.getUser(), db.getPassword());
-	}
-
 	public static void main(String[] args) throws Exception {
-		try (DatabaseConnector connector = initConnector()) {
-			CommonSqlQueries commonSqlQueries = new CommonSqlQueries(connector);
+		try (EntityManager em = DbLibInitializer.initialize()) {
+			CommonSqlQueries commonSqlQueries = new CommonSqlQueries(em);
 			System.out.println("Connected to database " + commonSqlQueries.getDatabaseName());
-			createTables(connector);
+			createTables(em);
 
-			DepartmentRepository departmentRepository = new DepartmentRepository(connector);
+			DepartmentRepository departmentRepository = new DepartmentRepository(em);
 			departmentRepository.getAll().forEach(System.out::println);
 		}
 	}
