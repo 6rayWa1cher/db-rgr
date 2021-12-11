@@ -23,7 +23,7 @@ public class DatabaseInitializedTest {
 
 	@BeforeEach
 	void prepareDatabase() throws SQLException {
-		Main.dropDatabase(em);
-		Main.createTables(em);
+		SchemaInitializer.dropDatabase(em);
+		SchemaInitializer.createTables(em);
 	}
 }
