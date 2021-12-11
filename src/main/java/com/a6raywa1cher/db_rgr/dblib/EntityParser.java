@@ -40,6 +40,7 @@ public class EntityParser {
 				T t = ReflectionUtils.instantiate(resultType);
 				for (int i = 0; i < obj.length; i++) {
 					Object o = obj[i];
+					if (o == null) continue;
 					String fieldName = metaData.getColumnName(i + 1);
 					FieldData fieldData = fieldDataOfClass.getByName(fieldName);
 					Objects.requireNonNull(fieldData);

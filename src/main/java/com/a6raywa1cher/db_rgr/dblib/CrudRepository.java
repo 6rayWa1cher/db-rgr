@@ -7,6 +7,7 @@ import com.a6raywa1cher.db_rgr.lib.ArrayUtils;
 import lombok.SneakyThrows;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.a6raywa1cher.db_rgr.lib.ReflectionUtils.wrapSneaky;
@@ -86,6 +87,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 	@SneakyThrows
 	public T insert(T t) {
+		Objects.requireNonNull(t);
 		entityManager.executeUpdate(
 			unsafeInjectParameters("INSERT INTO public.%s (%s) VALUES (%s)",
 				tableName,
@@ -106,6 +108,7 @@ public abstract class CrudRepository<T extends Entity> {
 
 	@SneakyThrows
 	public void update(T t) {
+		Objects.requireNonNull(t);
 		Object[] prevPrimaryKey = entityManager.getRecordedPrimaryKey(t);
 		entityManager.executeUpdate(
 			unsafeInjectParameters("UPDATE public.%s SET (%s) = (%s) WHERE (%s) = (%s)",
@@ -120,7 +123,20 @@ public abstract class CrudRepository<T extends Entity> {
 	}
 
 	@SneakyThrows
+	public void updateFromDb(T t) {
+		Objects.requireNonNull(t);
+		Object[] prevPrimaryKey = entityManager.getRecordedPrimaryKey(t);
+		T newT = getById(prevPrimaryKey);
+		for (FieldData fd : classData.getFieldDataList()) {
+			fd.setter().invoke(t, fd.getter().invoke(newT));
+		}
+		entityManager.updateEntityInfo(t);
+		entityManager.deregisterObject(newT);
+	}
+
+	@SneakyThrows
 	public void delete(T t) {
+		Objects.requireNonNull(t);
 		entityManager.executeUpdate(
 			unsafeInjectParameters("DELETE FROM public.%s WHERE (%s) = (%s)",
 				tableName,

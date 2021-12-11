@@ -103,7 +103,7 @@ public class EntityFactory {
 	public Machinery buildMachinery(Machinery facade) {
 		Machinery machinery = new Machinery();
 		machinery.setId(++i);
-		machinery.setMachineryTitle(first(facade.getMachineryTitle(), () -> createMachineryType().getType()));
+		machinery.setMachineryTitle(first(facade.getMachineryTitle(), () -> createMachineryType().getMachineryTitle()));
 		machinery.setDateOfPurchase(LocalDate.now().minusYears(++i % 10));
 		machinery.setDepartmentTitle(first(facade.getDepartmentTitle(), () -> createDepartment().getTitle()));
 		machinery.setHolderName(first(

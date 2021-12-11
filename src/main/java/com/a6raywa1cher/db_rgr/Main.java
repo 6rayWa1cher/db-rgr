@@ -61,12 +61,12 @@ public class Main {
 					ON UPDATE CASCADE ON DELETE CASCADE,
 				id int CHECK (id > 0),
 				machinery_title varchar(255) REFERENCES public.machinery_type
-					ON UPDATE CASCADE ON DELETE CASCADE,
+					ON UPDATE CASCADE ON DELETE RESTRICT,
 				holder_name varchar(255),
 				date_of_purchase date CHECK ( date_of_purchase <= now()::date ),
 				PRIMARY KEY (department_title, machinery_title, id),
 				FOREIGN KEY (holder_name, department_title) REFERENCES public.employee (full_name, department_title)
-					MATCH FULL ON UPDATE CASCADE ON DELETE SET NULL
+					MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT
 			);
 			""");
 	}
