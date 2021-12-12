@@ -2,11 +2,13 @@ package com.a6raywa1cher.db_rgr.dblib;
 
 import com.a6raywa1cher.db_rgr.dblib.analyzer.ClassAnalyzer;
 import com.a6raywa1cher.db_rgr.dblib.entity.Entity;
+import lombok.SneakyThrows;
 import org.intellij.lang.annotations.Language;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -100,6 +102,25 @@ public class EntityManager implements AutoCloseable {
 
 	public EntityParser getEntityProcessor() {
 		return entityProcessor;
+	}
+
+	public void openTransaction() {
+		openTransaction(Connection.TRANSACTION_READ_COMMITTED);
+	}
+
+	@SneakyThrows
+	public void openTransaction(int level) {
+		databaseConnector.beginTransaction(level);
+	}
+
+	@SneakyThrows
+	public void commit() {
+		databaseConnector.commit();
+	}
+
+	@SneakyThrows
+	public void rollback() {
+		databaseConnector.rollback();
 	}
 
 	@Override

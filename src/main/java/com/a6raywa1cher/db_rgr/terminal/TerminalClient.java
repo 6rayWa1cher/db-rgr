@@ -17,6 +17,8 @@ public class TerminalClient implements AutoCloseable {
 
 	private final ClientEnvironment clientEnvironment;
 
+	private final StringParser stringParser;
+
 	private final EntityManager entityManager;
 
 	private final Scanner scanner;
@@ -27,7 +29,8 @@ public class TerminalClient implements AutoCloseable {
 		this.entityManager = entityManager;
 		this.scanner = new Scanner(inputStream);
 		this.writer = new PrintWriter(outputStream, true);
-		this.clientEnvironment = new ClientEnvironment(scanner, writer, entityManager, new HashSet<>());
+		this.stringParser = new StringParser();
+		this.clientEnvironment = new ClientEnvironment(scanner, writer, entityManager, stringParser, new HashSet<>());
 		addDefaultControllers();
 	}
 
@@ -39,9 +42,15 @@ public class TerminalClient implements AutoCloseable {
 	public void start() {
 		Result result = new Result(MainMenuController.class, Controller.MAIN_METHOD);
 		while (result.nextController() != null) {
-			Controller controller = controllerMap.get(result.nextController());
-			result = controller.process(result.nextMethod());
-			clientEnvironment.setBag(result.newBag());
+			try {
+				Controller controller = controllerMap.get(result.nextController());
+				result = controller.process(result.nextMethod());
+				clientEnvironment.setBag(result.newBag());
+			} catch (Exception e) {
+				writer.println("Exception has occured");
+				e.printStackTrace(writer);
+				result = new Result(MainMenuController.class, Controller.MAIN_METHOD);
+			}
 		}
 	}
 

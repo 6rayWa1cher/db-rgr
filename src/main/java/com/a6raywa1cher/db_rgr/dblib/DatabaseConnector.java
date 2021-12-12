@@ -10,12 +10,13 @@ import java.util.List;
 
 public class DatabaseConnector implements AutoCloseable {
 	private final Connection con;
+	private boolean prevAutoCommit = true;
 
 	@SneakyThrows(ClassNotFoundException.class)
 	DatabaseConnector(String jdbcUrl, String user, String password) throws SQLException {
 		ReflectionUtils.instantiate(Class.forName("org.postgresql.Driver"));
 		this.con = DriverManager.getConnection(jdbcUrl, user, password);
-		con.setAutoCommit(true);
+		con.setAutoCommit(prevAutoCommit);
 	}
 
 
@@ -55,6 +56,22 @@ public class DatabaseConnector implements AutoCloseable {
 		try (PreparedStatement preparedStatement = openPS(sql, params)) {
 			return preparedStatement.executeUpdate();
 		}
+	}
+
+	public void beginTransaction(int level) throws SQLException {
+		prevAutoCommit = con.getAutoCommit();
+		con.setAutoCommit(false);
+		con.setTransactionIsolation(level);
+	}
+
+	public void commit() throws SQLException {
+		con.commit();
+		con.setAutoCommit(prevAutoCommit);
+	}
+
+	public void rollback() throws SQLException {
+		con.rollback();
+		con.setAutoCommit(prevAutoCommit);
 	}
 
 	public void withTransaction(SqlRunnable runnable) throws SQLException {

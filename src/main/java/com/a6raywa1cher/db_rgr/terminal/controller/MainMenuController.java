@@ -1,11 +1,11 @@
 package com.a6raywa1cher.db_rgr.terminal.controller;
 
-import com.a6raywa1cher.db_rgr.terminal.AbstractController;
+import com.a6raywa1cher.db_rgr.terminal.AbstractMenuController;
 import com.a6raywa1cher.db_rgr.terminal.ClientEnvironment;
 import com.a6raywa1cher.db_rgr.terminal.Controller;
 import com.a6raywa1cher.db_rgr.terminal.Result;
 
-public class MainMenuController extends AbstractController {
+public class MainMenuController extends AbstractMenuController {
 	public MainMenuController(ClientEnvironment clientEnvironment) {
 		super(null, clientEnvironment);
 	}
@@ -13,7 +13,7 @@ public class MainMenuController extends AbstractController {
 	@Override
 	protected void registerDefault() {
 		super.registerDefault();
-		registerMethod("department", "Department", this::department);
+		registerMethod("department", "d", "Department", this::department);
 	}
 
 	@Override
