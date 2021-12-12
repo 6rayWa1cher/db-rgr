@@ -1,5 +1,6 @@
 package com.a6raywa1cher.db_rgr.terminal;
 
+import com.a6raywa1cher.db_rgr.lib.Pair;
 import lombok.Data;
 
 import java.io.PrintWriter;
@@ -65,14 +66,14 @@ public abstract class AbstractMenuController implements Controller {
 		filteredMap.values()
 			.stream()
 			.sorted(Comparator.comparing(InnerMethod::methodName))
-			.forEach(m -> writer.println("[" + m.menuKey() + "]\t" + m.methodVisibleName()));
-		writer.println("[e]\tExit");
+			.forEach(m -> writer.println("[" + m.menuKey() + "]\t\t" + m.methodVisibleName()));
+		writer.println("[E]\t\tExit");
 
 //		String input = promptUntil("", s -> s.equals("e") || filteredMap.containsKey(s));
 		String input = buildPrompt()
-			.validator(s -> s.equals("e") || filteredMap.containsKey(s))
+			.validator(s -> s.equals("E") || filteredMap.containsKey(s))
 			.prompt();
-		if (input.equals("e")) {
+		if (input.equals("E")) {
 			if (exitController != null) {
 				return new Result(exitController, Controller.MAIN_METHOD, Collections.emptySet());
 			} else {
@@ -92,7 +93,7 @@ public abstract class AbstractMenuController implements Controller {
 			.preMapper(String::toLowerCase)
 			.validator(s -> s.equals("y") || s.equals("n"))
 			.prompt();
-		return b.equals("y");
+		return "y".equals(b);
 	}
 
 	protected Prompt<String> buildPrompt() {
@@ -125,6 +126,7 @@ public abstract class AbstractMenuController implements Controller {
 			}
 		};
 		private Function<String, T> preMapper;
+		private boolean bypassNulls = false;
 
 		private Prompt(Class<T> targetClass) {
 			this.targetClass = targetClass;
@@ -156,17 +158,33 @@ public abstract class AbstractMenuController implements Controller {
 			return this;
 		}
 
+		public Prompt<T> bypassNulls() {
+			this.bypassNulls = true;
+			return this;
+		}
+
 		public T prompt() {
+			return promptExtended().left();
+		}
+
+		public Pair<T, Boolean> promptExtended() {
 			while (true) {
 				writer.print(prefix);
 				writer.print("> ");
 				writer.flush();
 				String s = scanner.nextLine().strip();
+				if (bypassNulls) {
+					if (s.isBlank()) {
+						return new Pair<>(null, false);
+					} else if (s.equals("null")) {
+						return new Pair<>(null, true);
+					}
+				}
 				try {
 					T o = preMapper.apply(s);
 					boolean valid = validator.test(o);
 					if (valid) {
-						return o;
+						return new Pair<>(o, true);
 					} else {
 						errorFunc.accept(o, null);
 					}

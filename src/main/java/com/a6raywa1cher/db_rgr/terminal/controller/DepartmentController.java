@@ -17,6 +17,6 @@ public class DepartmentController extends AbstractCrudMenuController<Department>
 
 	@Override
 	protected Department example() {
-		return new Department("Central department of Tver", "+7 123 432-23-55", "Tver");
+		return new Department("Central department of Tver city", "+7 123 432-23-55", "Tver");
 	}
 }

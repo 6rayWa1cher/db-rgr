@@ -82,10 +82,8 @@ public class EntityManager implements AutoCloseable {
 		List<T> result = executeSelect(sql, targetClass, params);
 		if (result.size() > 1) {
 			throw new RuntimeException("Database returned more than one result; expected exactly one");
-		} else if (result.size() == 0) {
-			throw new RuntimeException("Database doesn't returned anything; expected exactly one");
 		}
-		return result.get(0);
+		return result.size() == 1 ? result.get(0) : null;
 	}
 
 	public void execute(@Language("SQL") String sql, Object... params) throws SQLException {

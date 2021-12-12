@@ -10,7 +10,7 @@ public class StringParser {
 	private final Map<Class<?>, DataParser<?>> map = new HashMap<>();
 
 	public StringParser() {
-
+		addDefaultParsers();
 	}
 
 	private void addDefaultParsers() {

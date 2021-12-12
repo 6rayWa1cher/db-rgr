@@ -1,8 +1,7 @@
 package com.a6raywa1cher.db_rgr.terminal;
 
 import com.a6raywa1cher.db_rgr.dblib.EntityManager;
-import com.a6raywa1cher.db_rgr.terminal.controller.DepartmentController;
-import com.a6raywa1cher.db_rgr.terminal.controller.MainMenuController;
+import com.a6raywa1cher.db_rgr.terminal.controller.*;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,6 +36,12 @@ public class TerminalClient implements AutoCloseable {
 	private void addDefaultControllers() {
 		controllerMap.put(MainMenuController.class, new MainMenuController(clientEnvironment));
 		controllerMap.put(DepartmentController.class, new DepartmentController(clientEnvironment));
+		controllerMap.put(EmployeeController.class, new EmployeeController(clientEnvironment));
+		controllerMap.put(EmployeeTypeController.class, new EmployeeTypeController(clientEnvironment));
+		controllerMap.put(EmployeeRequirementController.class, new EmployeeRequirementController(clientEnvironment));
+		controllerMap.put(MachineryController.class, new MachineryController(clientEnvironment));
+		controllerMap.put(MachineryTypeController.class, new MachineryTypeController(clientEnvironment));
+		controllerMap.put(MachineryRequirementController.class, new MachineryRequirementController(clientEnvironment));
 	}
 
 	public void start() {
