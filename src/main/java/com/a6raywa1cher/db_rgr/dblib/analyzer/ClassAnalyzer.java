@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,7 +21,7 @@ import static com.a6raywa1cher.db_rgr.lib.StringUtils.capitalizeFirstLetter;
 public class ClassAnalyzer {
 	private final static ClassAnalyzer classAnalyzer = new ClassAnalyzer();
 
-	private final Map<Class<? extends Entity>, ClassData> cachedFieldData = new HashMap<>();
+	private final Map<Class<?>, ClassData> cachedFieldData = new HashMap<>();
 
 	private ClassAnalyzer() {
 
@@ -45,7 +46,7 @@ public class ClassAnalyzer {
 	}
 
 	@SneakyThrows
-	private ClassData $getClassData(Class<? extends Entity> clazz) {
+	private ClassData $getClassData(Class<?> clazz) {
 		List<FieldData> fieldData = Stream.of(clazz.getDeclaredFields())
 			.filter(f -> f.isAnnotationPresent(Column.class))
 			.map(wrapSneaky(f -> {
@@ -68,14 +69,16 @@ public class ClassAnalyzer {
 				);
 			}))
 			.collect(Collectors.toList());
-		String tableName = clazz.getDeclaredConstructor().newInstance().getTableName();
+		String tableName = Entity.class.isAssignableFrom(clazz) ?
+			((Entity) clazz.getDeclaredConstructor().newInstance()).getTableName() :
+			null;
 		return new ClassData(
 			fieldData,
-			tableName.equals("") ? camelCaseToUnderscore(clazz.getSimpleName()) : tableName
+			Objects.equals(tableName, "") ? camelCaseToUnderscore(clazz.getSimpleName()) : tableName
 		);
 	}
 
-	public ClassData getClassData(Class<? extends Entity> clazz) {
+	public ClassData getClassData(Class<?> clazz) {
 		cachedFieldData.computeIfAbsent(clazz, this::$getClassData);
 		return cachedFieldData.get(clazz);
 	}

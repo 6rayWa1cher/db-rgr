@@ -5,6 +5,7 @@ import com.a6raywa1cher.db_rgr.dblib.analyzer.ClassData;
 import com.a6raywa1cher.db_rgr.dblib.analyzer.FieldData;
 import com.a6raywa1cher.db_rgr.dblib.datatypes.LocalDateDataType;
 import com.a6raywa1cher.db_rgr.dblib.entity.Entity;
+import com.a6raywa1cher.db_rgr.dblib.entity.SubEntity;
 import com.a6raywa1cher.db_rgr.lib.ReflectionUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -74,7 +75,7 @@ public class EntityParser {
 	}
 
 	public <T> List<T> parseResult(Class<T> resultType, ExecuteResult executeResult) {
-		if (Entity.class.isAssignableFrom(resultType)) {
+		if (Entity.class.isAssignableFrom(resultType) || resultType.isAnnotationPresent(SubEntity.class)) {
 			return parseResultEntity(resultType, executeResult.metaData(), executeResult.result());
 		} else {
 			return parseResultPrimitive(resultType, executeResult.result());

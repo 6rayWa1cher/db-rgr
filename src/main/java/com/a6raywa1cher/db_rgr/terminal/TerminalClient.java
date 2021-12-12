@@ -34,14 +34,18 @@ public class TerminalClient implements AutoCloseable {
 	}
 
 	private void addDefaultControllers() {
-		controllerMap.put(MainMenuController.class, new MainMenuController(clientEnvironment));
-		controllerMap.put(DepartmentController.class, new DepartmentController(clientEnvironment));
-		controllerMap.put(EmployeeController.class, new EmployeeController(clientEnvironment));
-		controllerMap.put(EmployeeTypeController.class, new EmployeeTypeController(clientEnvironment));
-		controllerMap.put(EmployeeRequirementController.class, new EmployeeRequirementController(clientEnvironment));
-		controllerMap.put(MachineryController.class, new MachineryController(clientEnvironment));
-		controllerMap.put(MachineryTypeController.class, new MachineryTypeController(clientEnvironment));
-		controllerMap.put(MachineryRequirementController.class, new MachineryRequirementController(clientEnvironment));
+		registerController(MainMenuController.class, new MainMenuController(clientEnvironment));
+		registerController(DepartmentController.class, new DepartmentController(clientEnvironment));
+		registerController(EmployeeController.class, new EmployeeController(clientEnvironment));
+		registerController(EmployeeTypeController.class, new EmployeeTypeController(clientEnvironment));
+		registerController(EmployeeRequirementController.class, new EmployeeRequirementController(clientEnvironment));
+		registerController(MachineryController.class, new MachineryController(clientEnvironment));
+		registerController(MachineryTypeController.class, new MachineryTypeController(clientEnvironment));
+		registerController(MachineryRequirementController.class, new MachineryRequirementController(clientEnvironment));
+	}
+
+	public <T extends Controller> void registerController(Class<T> clazz, T controller) {
+		controllerMap.put(clazz, controller);
 	}
 
 	public void start() {

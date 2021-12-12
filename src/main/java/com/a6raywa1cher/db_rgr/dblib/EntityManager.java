@@ -71,6 +71,10 @@ public class EntityManager implements AutoCloseable {
 			.get(t.getUuid());
 	}
 
+	public ExecuteResult executeSelect(@Language("SQL") String sql, Object... params) throws SQLException {
+		return databaseConnector.executeSelect(sql, params);
+	}
+
 	public <T> List<T> executeSelect(@Language("SQL") String sql, Class<T> targetClass, Object... params) throws SQLException {
 		ExecuteResult executeResult = databaseConnector.executeSelect(sql, params);
 		List<T> out = entityProcessor.parseResult(targetClass, executeResult);
