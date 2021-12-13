@@ -62,15 +62,15 @@ public class EntityFactory {
 			requirement.setPosition(employeeType.getPosition());
 			requirement.setEmployeeRank(employeeType.getEmployeeRank());
 		}
-		requirement.setCount(++i % 10 + 2);
+		requirement.setCount(first(facade.getCount(), ++i % 10 + 2));
 		return requirement;
 	}
 
 	public Employee buildEmployee(Employee facade) {
 		Employee employee = new Employee();
 		employee.setDepartmentTitle(first(facade.getDepartmentTitle(), () -> createDepartment().getTitle()));
-		employee.setFullName("fn#" + ++i);
-		employee.setBirthDate(LocalDate.now().minusYears((++i % 30) + 20));
+		employee.setFullName(first(facade.getFullName(), "fn#" + ++i));
+		employee.setBirthDate(first(facade.getBirthDate(), LocalDate.now().minusYears((++i % 30) + 20)));
 		if (facade.getPosition() != null) {
 			employee.setPosition(facade.getPosition());
 			employee.setEmployeeRank(facade.getEmployeeRank());
@@ -79,8 +79,8 @@ public class EntityFactory {
 			employee.setPosition(employeeType.getPosition());
 			employee.setEmployeeRank(employeeType.getEmployeeRank());
 		}
-		employee.setLastPromotionDate(LocalDate.now().minusMonths((++i % 12) + 1));
-		employee.setEmploymentDate(LocalDate.now().minusYears((++i % 12)));
+		employee.setLastPromotionDate(first(facade.getLastPromotionDate(), LocalDate.now().minusMonths((++i % 12) + 1)));
+		employee.setEmploymentDate(first(facade.getEmploymentDate(), LocalDate.now().minusYears((++i % 12))));
 		return employee;
 	}
 
@@ -102,9 +102,9 @@ public class EntityFactory {
 
 	public Machinery buildMachinery(Machinery facade) {
 		Machinery machinery = new Machinery();
-		machinery.setId(++i);
+		machinery.setId(first(facade.getId(), ++i));
 		machinery.setMachineryTitle(first(facade.getMachineryTitle(), () -> createMachineryType().getMachineryTitle()));
-		machinery.setDateOfPurchase(LocalDate.now().minusYears(++i % 10));
+		machinery.setDateOfPurchase(first(facade.getDateOfPurchase(), LocalDate.now().minusYears(++i % 10)));
 		machinery.setDepartmentTitle(first(facade.getDepartmentTitle(), () -> createDepartment().getTitle()));
 		machinery.setHolderName(first(
 			facade.getHolderName(),

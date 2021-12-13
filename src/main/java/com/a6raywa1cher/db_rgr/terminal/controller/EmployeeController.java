@@ -39,19 +39,14 @@ public class EmployeeController extends AbstractCrudMenuController<Employee> {
 	}
 
 	public Result getAllOwnedMachinery() {
-		writer.println("Type primary key");
-		Object[] pk = readPrimaryKeyFromConsole();
-		Employee e = crudRepository.getById(pk);
-		if (e == null) {
-			writer.println(entityClass.getSimpleName() + " isn't found");
+		return getEntityOrMain((e) -> {
+			List<Machinery> list = machineryRepository.getAllByHolder(e);
+			if (list.size() > 0) {
+				list.forEach(writer::println);
+			} else {
+				writer.println("No results");
+			}
 			return new Result(getClass(), Controller.MAIN_METHOD);
-		}
-		List<Machinery> list = machineryRepository.getAllByHolder(e);
-		if (list.size() > 0) {
-			list.forEach(writer::println);
-		} else {
-			writer.println("No results");
-		}
-		return new Result(getClass(), Controller.MAIN_METHOD);
+		});
 	}
 }

@@ -2,6 +2,7 @@ package com.a6raywa1cher.db_rgr.model.repository;
 
 import com.a6raywa1cher.db_rgr.dblib.CrudRepository;
 import com.a6raywa1cher.db_rgr.dblib.EntityManager;
+import com.a6raywa1cher.db_rgr.model.Department;
 import com.a6raywa1cher.db_rgr.model.Employee;
 import com.a6raywa1cher.db_rgr.model.Machinery;
 import lombok.SneakyThrows;
@@ -18,10 +19,20 @@ public class MachineryRepository extends CrudRepository<Machinery> {
 		return entityManager.executeSelect("""
 				SELECT m.*
 				FROM public.machinery m
-				INNER JOIN employee e ON e.full_name = m.holder_name AND e.department_title = m.department_title
-				WHERE e.department_title = ? AND e.full_name = ?
+				WHERE m.department_title = ? AND m.holder_name = ?
 				""",
 			Machinery.class,
 			e.getDepartmentTitle(), e.getFullName());
+	}
+
+	@SneakyThrows
+	public List<Machinery> getAllByDepartment(Department department) {
+		return entityManager.executeSelect("""
+				select *
+				from machinery
+				where department_title = ?
+				""",
+			Machinery.class,
+			department.getTitle());
 	}
 }

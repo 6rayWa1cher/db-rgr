@@ -19,15 +19,18 @@ public class DepartmentRepository extends CrudRepository<Department> {
 	public List<EmployeeTypeStats> getEmployeeTypeStats(Department department) {
 		return entityManager.executeSelect("""
 			with A as (
-				select e.employee_rank, e.position, count(*) as count
-				from public.employee_type t
-					left join public.employee e on e.position = t.position and e.employee_rank = t.employee_rank
-				where e.department_title = ?
-				group by e.employee_rank, e.position
+			    select e.employee_rank, e.position, count(*) as count
+			    from public.employee_type t
+			             left join public.employee e on e.position = t.position and e.employee_rank = t.employee_rank
+			    where e.department_title = ?
+			    group by e.employee_rank, e.position
 			)
-			select a.employee_rank, a.position, coalesce(r.count::bigint, 0) as expected_count, a.count as real_count
+			select coalesce(a.employee_rank, r.employee_rank) as employee_rank,
+			       coalesce(a.position, r.position)           as position,
+			       coalesce(r.count::bigint, 0)               as expected_count,
+			       coalesce(a.count, 0)                       as real_count
 			from public.employee_requirement r
-				right join A a on a.employee_rank = r.employee_rank and a.position = r.position
+			         full join A a on a.employee_rank = r.employee_rank and a.position = r.position
 			""", EmployeeTypeStats.class, department.getTitle());
 	}
 
@@ -35,15 +38,17 @@ public class DepartmentRepository extends CrudRepository<Department> {
 	public List<MachineryTypeStats> getMachineryTypeStats(Department department) {
 		return entityManager.executeSelect("""
 			with A as (
-				select m.machinery_title, count(*) as count
-				from public.machinery_type t
-					left join public.machinery m on t.machinery_title = m.machinery_title
-				where m.department_title = ?
-				group by m.machinery_title
+			    select m.machinery_title, count(*) as count
+			    from public.machinery_type t
+			             left join public.machinery m on t.machinery_title = m.machinery_title
+			    where m.department_title = ?
+			    group by m.machinery_title
 			)
-			select a.machinery_title, coalesce(r.count::bigint, 0) as expected_count, a.count as real_count
+			select coalesce(a.machinery_title, r.machinery_title) as machinery_title,
+			       coalesce(r.count::bigint, 0)                   as expected_count,
+			       coalesce(a.count, 0)                           as real_count
 			from public.machinery_requirement r
-				right join A a on a.machinery_title = r.machinery_title
+			         full join A a on a.machinery_title = r.machinery_title
 			""", MachineryTypeStats.class, department.getTitle());
 	}
 

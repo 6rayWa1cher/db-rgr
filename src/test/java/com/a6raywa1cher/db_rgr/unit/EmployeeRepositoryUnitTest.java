@@ -145,4 +145,31 @@ public class EmployeeRepositoryUnitTest extends DatabaseInitializedTest {
 
 		assertThrows(SQLException.class, () -> employeeTypeRepository.delete(employeeType));
 	}
+
+	@Test
+	void testGetAllByDepartment() {
+		Department department = entityFactory.createDepartment();
+
+		Employee employee1 = entityFactory.createEmployee(
+			Employee.builder()
+				.fullName("a")
+				.departmentTitle(department.getTitle())
+				.build()
+		);
+
+		Employee employee2 = entityFactory.createEmployee(
+			Employee.builder()
+				.fullName("b")
+				.departmentTitle(department.getTitle())
+				.build()
+		);
+
+		entityFactory.createEmployee();
+
+		List<Employee> employees = repository.getAllByDepartment(department);
+		employees.sort(Comparator.comparing(Employee::getFullName));
+		assertEquals(2, employees.size());
+		assertEquals(employee1, employees.get(0));
+		assertEquals(employee2, employees.get(1));
+	}
 }

@@ -3,12 +3,14 @@ package com.a6raywa1cher.db_rgr.model;
 import com.a6raywa1cher.db_rgr.dblib.entity.Column;
 import com.a6raywa1cher.db_rgr.dblib.entity.Entity;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Machinery extends Entity {

@@ -2,6 +2,7 @@ package com.a6raywa1cher.db_rgr.terminal;
 
 import com.a6raywa1cher.db_rgr.dblib.CrudRepository;
 import com.a6raywa1cher.db_rgr.dblib.EntityManager;
+import com.a6raywa1cher.db_rgr.dblib.analyzer.ClassAnalyzer;
 import com.a6raywa1cher.db_rgr.dblib.analyzer.ClassData;
 import com.a6raywa1cher.db_rgr.dblib.analyzer.FieldData;
 import com.a6raywa1cher.db_rgr.dblib.entity.Entity;
@@ -12,10 +13,13 @@ import lombok.SneakyThrows;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class AbstractCrudMenuController<T extends Entity> extends AbstractMenuController {
 	protected final ClassData classData;
+
+	protected final ClassAnalyzer classAnalyzer;
 
 	protected final Class<T> entityClass;
 
@@ -35,6 +39,7 @@ public abstract class AbstractCrudMenuController<T extends Entity> extends Abstr
 		this.classData = entityManager.getClassAnalyzer().getClassData(entityClass);
 		this.stringParser = clientEnvironment.getStringParser();
 		this.crudRepository = crudRepository;
+		this.classAnalyzer = entityManager.getClassAnalyzer();
 	}
 
 	@Override
@@ -72,7 +77,11 @@ public abstract class AbstractCrudMenuController<T extends Entity> extends Abstr
 	}
 
 	protected Object[] readPrimaryKeyFromConsole() {
-		List<FieldData> primaryKey = classData.getPrimaryKey();
+		return readPrimaryKeyFromConsole(entityClass);
+	}
+
+	protected Object[] readPrimaryKeyFromConsole(Class<?> clazz) {
+		List<FieldData> primaryKey = classAnalyzer.getClassData(clazz).getPrimaryKey();
 		Object[] params = new Object[primaryKey.size()];
 		for (int i = 0; i < primaryKey.size(); i++) {
 			FieldData fieldData = primaryKey.get(i);
@@ -82,13 +91,45 @@ public abstract class AbstractCrudMenuController<T extends Entity> extends Abstr
 		return params;
 	}
 
-	public Result getAll() {
-		List<T> entities = crudRepository.getAll();
-		if (entities.size() > 0) {
-			entities.forEach(System.out::println);
+	protected void printList(List<?> list) {
+		if (list.size() > 0) {
+			list.forEach(System.out::println);
 		} else {
 			writer.println("No results");
 		}
+	}
+
+	protected Result getEntityOrMain(Function<T, Result> onFound) {
+		return getEntityOrMain(() -> {
+				writer.println("Type primary key");
+				Object[] pk = readPrimaryKeyFromConsole();
+				return crudRepository.getById(pk);
+			},
+			onFound);
+	}
+
+	protected <J> Result getEntityOrMain(Supplier<J> getter, Function<J, Result> onFound) {
+		return getEntityOrMain(
+			getter,
+			onFound,
+			() -> {
+				writer.println(entityClass.getSimpleName() + " isn't found");
+				return new Result(getClass(), Controller.MAIN_METHOD);
+			});
+	}
+
+	protected <J> Result getEntityOrMain(Supplier<J> getter, Function<J, Result> onFound, Supplier<Result> onNotFound) {
+		J j = getter.get();
+		if (j == null) {
+			return onNotFound.get();
+		} else {
+			return onFound.apply(j);
+		}
+	}
+
+	public Result getAll() {
+		List<T> entities = crudRepository.getAll();
+		printList(entities);
 		writer.println();
 		return new Result(this.getClass(), Controller.MAIN_METHOD);
 	}
@@ -153,59 +194,44 @@ public abstract class AbstractCrudMenuController<T extends Entity> extends Abstr
 	}
 
 	public Result update() {
-		writer.println("Type primary key");
-		Object[] pk = readPrimaryKeyFromConsole();
-		T t = crudRepository.getById(pk);
-		if (t == null) {
-			writer.println(entityClass.getSimpleName() + " isn't found");
-			return new Result(getClass(), Controller.MAIN_METHOD);
-		}
-		writer.println("Type new values (type null for erase)");
-		updateObject(t);
-		writer.println("Final object:");
-		writer.println(t);
-		boolean c = confirm();
-		if (!c) {
-			writer.println("Aborted");
-			return new Result(getClass(), Controller.MAIN_METHOD);
-		}
-		return withTransaction(() -> {
-			crudRepository.update(t);
-			writer.println("Appended");
-			return new Result(getClass(), Controller.MAIN_METHOD);
+		return getEntityOrMain((t) -> {
+			writer.println("Type new values (type null for erase)");
+			updateObject(t);
+			writer.println("Final object:");
+			writer.println(t);
+			boolean c = confirm();
+			if (!c) {
+				writer.println("Aborted");
+				return new Result(getClass(), Controller.MAIN_METHOD);
+			}
+			return withTransaction(() -> {
+				crudRepository.update(t);
+				writer.println("Appended");
+				return new Result(getClass(), Controller.MAIN_METHOD);
+			});
 		});
 	}
 
 	public Result delete() {
-		writer.println("Type primary key");
-		Object[] pk = readPrimaryKeyFromConsole();
-		T t = crudRepository.getById(pk);
-		if (t == null) {
-			writer.println(entityClass.getSimpleName() + " isn't found");
-			return new Result(getClass(), Controller.MAIN_METHOD);
-		}
-		writer.println(t);
-		boolean c = confirm();
-		if (!c) {
-			writer.println("Aborted");
-			return new Result(getClass(), Controller.MAIN_METHOD);
-		}
-		return withTransaction(() -> {
-			crudRepository.delete(t);
-			writer.println("Deleted");
-			return new Result(getClass(), Controller.MAIN_METHOD);
+		return getEntityOrMain((t) -> {
+			writer.println(t);
+			boolean c = confirm();
+			if (!c) {
+				writer.println("Aborted");
+				return new Result(getClass(), Controller.MAIN_METHOD);
+			}
+			return withTransaction(() -> {
+				crudRepository.delete(t);
+				writer.println("Deleted");
+				return new Result(getClass(), Controller.MAIN_METHOD);
+			});
 		});
 	}
 
 	public Result getById() {
-		writer.println("Type primary key");
-		Object[] pk = readPrimaryKeyFromConsole();
-		T t = crudRepository.getById(pk);
-		if (t == null) {
-			writer.println(entityClass.getSimpleName() + " isn't found");
+		return getEntityOrMain((t) -> {
+			writer.println(t);
 			return new Result(getClass(), Controller.MAIN_METHOD);
-		}
-		writer.println(t);
-		return new Result(getClass(), Controller.MAIN_METHOD);
+		});
 	}
 }

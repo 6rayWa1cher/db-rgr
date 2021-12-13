@@ -70,7 +70,7 @@ public class SchemaInitializer {
 	}
 
 	public static void dropDatabase(EntityManager em) throws SQLException {
-		em.executeUpdate("""
+		em.execute("""
 			drop table if exists machinery_requirement cascade;
 			drop table if exists employee_requirement cascade;
 			drop table if exists machinery cascade;

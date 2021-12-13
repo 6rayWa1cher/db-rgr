@@ -3,11 +3,10 @@ package com.a6raywa1cher.db_rgr.dblib;
 import com.a6raywa1cher.db_rgr.config.Config;
 import com.a6raywa1cher.db_rgr.config.ConfigLoader;
 import com.a6raywa1cher.db_rgr.dblib.analyzer.ClassAnalyzer;
-import com.a6raywa1cher.db_rgr.lib.ResourcesUtils;
 
 public class DbLibInitializer {
 	public static EntityManager initialize() throws Exception {
-		ConfigLoader configLoader = new ConfigLoader(ResourcesUtils.getPathOfResource("config.yml"));
+		ConfigLoader configLoader = new ConfigLoader("config.yml");
 		Config config = configLoader.getConfig();
 		Config.Db db = config.getDb();
 		return initialize(db.getJdbc(), db.getUser(), db.getPassword());

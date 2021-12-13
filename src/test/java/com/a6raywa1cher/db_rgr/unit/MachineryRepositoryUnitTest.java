@@ -19,8 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MachineryRepositoryUnitTest extends DatabaseInitializedTest {
 	static MachineryRepository repository;
@@ -154,25 +153,79 @@ public class MachineryRepositoryUnitTest extends DatabaseInitializedTest {
 		assertThrows(SQLException.class, () -> machineryTypeRepository.delete(machineryType));
 	}
 
-	@Test
-	void testDelete__deleteEmployeeThenRestrict() {
-		Machinery machinery = entityFactory.createMachinery();
-
-		Employee employee = employeeRepository.getById(machinery.getHolderName(), machinery.getDepartmentTitle());
-
-		assertThrows(SQLException.class, () -> employeeRepository.delete(employee));
-	}
-
 //	@Test
 //	void testDelete__deleteEmployeeThenSetNull() {
 //		Machinery machinery = entityFactory.createMachinery();
 //
 //		Employee employee = employeeRepository.getById(machinery.getHolderName(), machinery.getDepartmentTitle());
 //
-//		employeeRepository.delete(employee);
-//
-//		repository.updateFromDb(machinery);
-//
-//		assertNull(machinery.getHolderName());
+//		assertThrows(SQLException.class, () -> employeeRepository.delete(employee));
 //	}
+
+	@Test
+	void testDelete__deleteEmployeeThenSetNull() {
+		Machinery machinery = entityFactory.createMachinery();
+
+		Employee employee = employeeRepository.getById(machinery.getHolderName(), machinery.getDepartmentTitle());
+
+		employeeRepository.delete(employee);
+
+		repository.updateFromDb(machinery);
+
+		assertNull(machinery.getHolderName());
+	}
+
+	@Test
+	void testGetAllByHolder() {
+		Employee employee = entityFactory.createEmployee();
+
+		Machinery machinery1 = entityFactory.createMachinery(
+			Machinery.builder()
+				.departmentTitle(employee.getDepartmentTitle())
+				.holderName(employee.getFullName())
+				.build()
+		);
+
+		Machinery machinery2 = entityFactory.createMachinery(
+			Machinery.builder()
+				.departmentTitle(employee.getDepartmentTitle())
+				.holderName(employee.getFullName())
+				.build()
+		);
+
+		entityFactory.createMachinery(Machinery.builder()
+			.departmentTitle(employee.getDepartmentTitle())
+			.build());
+
+		List<Machinery> machinery = repository.getAllByHolder(employee);
+		machinery.sort(Comparator.comparing(Machinery::getId));
+		assertEquals(2, machinery.size());
+		assertEquals(machinery1, machinery.get(0));
+		assertEquals(machinery2, machinery.get(1));
+	}
+
+	@Test
+	void testGetAllByDepartment() {
+		Department department = entityFactory.createDepartment();
+
+		Machinery machinery1 = entityFactory.createMachinery(
+			Machinery.builder()
+				.departmentTitle(department.getTitle())
+				.build()
+		);
+
+		Machinery machinery2 = entityFactory.createMachinery(
+			Machinery.builder()
+				.departmentTitle(department.getTitle())
+				.build()
+		);
+
+		entityFactory.createMachinery();
+
+		List<Machinery> machinery = repository.getAllByDepartment(department);
+		machinery.sort(Comparator.comparing(Machinery::getId));
+		assertEquals(2, machinery.size());
+		assertEquals(machinery1, machinery.get(0));
+		assertEquals(machinery2, machinery.get(1));
+	}
 }
